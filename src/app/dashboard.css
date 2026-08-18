@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 /* --- VARIABLES & RESET --- */
 :root {
   --dash-bg: #fffafa;
@@ -12,6 +14,24 @@
   --white: #ffffff;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  /* font-family: "Poppins", sans-serif; */
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  background-color: var(--bg-soft);
+  color: var(--text-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
 }
 
 .dash-container {

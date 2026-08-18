@@ -40,7 +40,7 @@ export default function Home() {
             Explorez notre catalogue exhaustif, gérez vos recherches en un clic.
             Une plateforme unique pour s'inscrire, consulter les bases de
             données académiques et accéder à l'excellence documentaire de
-            l'ENAM.
+            l'ENA.
           </p>
 
          <div className="link">
@@ -189,7 +189,7 @@ export default function Home() {
             <i className="fa-solid fa-circle-info"></i> À propos du SDA
           </h3>
           <p>
-            Le Service de la Documentation et des Archives (SDA) de l'ENAM met à
+            Le Service de la Documentation et des Archives (SDA) de l'ENA met à
             votre disposition un fonds documentaire riche :
             <strong>
               {" "}
@@ -228,7 +228,7 @@ export default function Home() {
           <ul className="list-info-contacts">
             <li>
               <i className="fa-solid fa-location-dot icon-green"></i>
-              <span>ENAM, Abomey-Calavi, Bénin</span>
+              <span>ENA, Abomey-Calavi, Bénin</span>
             </li>
             <li>
               <i className="fa-brands fa-whatsapp icon-green"></i>

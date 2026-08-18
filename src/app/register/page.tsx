@@ -10,7 +10,7 @@ export default function Register() {
   const filieresData: Record<string, string[]> = {
 
 
-  "ENAM": ["AG (Administration Générale)", "AF (Administration des Finances)", "STID (Sciences et Techniques de l'Information et de la Documentation)", "SG (Secrétariat de Gestion)"],
+  "ENA": ["AG (Administration Générale)", "AF (Administration des Finances)", "STID (Sciences et Techniques de l'Information et de la Documentation)", "SG (Secrétariat de Gestion)"],
   "FASEG": ["Comptabilité", "Économie", "Gestion des Entreprises", "Finance", "Audit et Contrôle de Gestion", "Marketing", "Gestion des Ressources Humaines"],
   "FLASH": ["Lettres Modernes", "Anglais", "Allemand", "Espagnol", "Géographie", "Histoire", "Sociologie", "Anthropologie", "Psychologie", "Philosophie", "Linguistique"],
   "FADESP": ["Droit Privé", "Droit Public", "Science Politique", "Relations Internationales"],
@@ -153,7 +153,7 @@ export default function Register() {
               }}
             />
             <datalist id="schools-list">
-              <option value="ENAM" />
+              <option value="ENA" />
   <option value="FASEG" />
   <option value="FLASH" />
   <option value="FAST" />
