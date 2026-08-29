@@ -101,6 +101,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <p className="dropdown-name">{userFullName || "Utilisateur"}</p>
                 </div>
                 <hr className="dropdown-divider" />
+                <Link href="/" className="dropdown-item" onClick={closeDropdown}>
+                  <i className="fa-solid fa-house"></i> Page d'accueil
+                </Link>
                 <Link href="/profil" className="dropdown-item" onClick={closeDropdown}>
                   <i className="fa-solid fa-user"></i> Mon Profil
                 </Link>

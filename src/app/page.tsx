@@ -17,11 +17,58 @@ export default function Home() {
   if (loading) {
     return (
       <div className="loader-screen-overlay">
-        <svg viewBox="0 0 240 240" height="240" width="240" className="page-custom-loader">
-          <circle strokeLinecap="round" strokeDashoffset="-330" strokeDasharray="0 660" strokeWidth="20" stroke="#000" fill="none" r="105" cy="120" cx="120" className="loader-circle circle-alpha"></circle>
-          <circle strokeLinecap="round" strokeDashoffset="-110" strokeDasharray="0 220" strokeWidth="20" stroke="#000" fill="none" r="35" cy="120" cx="120" className="loader-circle circle-beta"></circle>
-          <circle strokeLinecap="round" strokeDasharray="0 440" strokeWidth="20" stroke="#000" fill="none" r="70" cy="120" cx="85" className="loader-circle circle-gamma"></circle>
-          <circle strokeLinecap="round" strokeDasharray="0 440" strokeWidth="20" stroke="#000" fill="none" r="70" cy="120" cx="155" className="loader-circle circle-delta"></circle>
+        <svg
+          viewBox="0 0 240 240"
+          height="240"
+          width="240"
+          className="page-custom-loader"
+        >
+          <circle
+            strokeLinecap="round"
+            strokeDashoffset="-330"
+            strokeDasharray="0 660"
+            strokeWidth="20"
+            stroke="#000"
+            fill="none"
+            r="105"
+            cy="120"
+            cx="120"
+            className="loader-circle circle-alpha"
+          ></circle>
+          <circle
+            strokeLinecap="round"
+            strokeDashoffset="-110"
+            strokeDasharray="0 220"
+            strokeWidth="20"
+            stroke="#000"
+            fill="none"
+            r="35"
+            cy="120"
+            cx="120"
+            className="loader-circle circle-beta"
+          ></circle>
+          <circle
+            strokeLinecap="round"
+            strokeDasharray="0 440"
+            strokeWidth="20"
+            stroke="#000"
+            fill="none"
+            r="70"
+            cy="120"
+            cx="85"
+            className="loader-circle circle-gamma"
+          ></circle>
+          <circle
+            strokeLinecap="round"
+            strokeDasharray="0 440"
+            strokeWidth="20"
+            stroke="#000"
+            fill="none"
+            r="70"
+            cy="120"
+            cx="155"
+            className="loader-circle circle-delta"
+          ></circle>
         </svg>
       </div>
     );
@@ -32,28 +79,26 @@ export default function Home() {
       <header className="hero-section">
         <div className="hero-content">
           <h1>
-            {" "}
-          Bibliothèque de  l'Ecole <br /> Nationale
-            d'Administration.
+            Bibliothèque de l'École <br />
+            <span className="highlight">Nationale d'Administration</span>
           </h1>
           <p className="hero-description">
             Explorez notre catalogue exhaustif, gérez vos recherches en un clic.
             Une plateforme unique pour s'inscrire, consulter les bases de
-            données académiques et accéder à l'excellence documentaire de
-            l'ENA.
+            données académiques et accéder à l'excellence documentaire de l'ENA.
           </p>
 
-         <div className="link">
-  <Link href="/login" className="btn-main">
-    Catalogue
-    <i className="fa-solid fa-book-bookmark"></i>
-  </Link>
+          <div className="link">
+            <Link href="/login" className="btn-main">
+              <span>Catalogue</span>
+              <i className="fa-solid fa-book-bookmark"></i>
+            </Link>
 
-  <Link href="/login" className="btn-main btn-second">
-    Enregistrement
-    <i className="fa-solid fa-circle-arrow-right"></i>
-  </Link>
-</div>
+            <Link href="/login" className="btn-main btn-second">
+              <span>Enregistrement</span>
+              <i className="fa-solid fa-circle-arrow-right"></i>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -81,18 +126,27 @@ export default function Home() {
 
       <section className="resources-container">
         <div className="resources-grid">
-          
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/cairn.png" alt="Cairn.info" className="resource-thumb" />
+                <img
+                  src="/img/cairn.png"
+                  alt="Cairn.info"
+                  className="resource-thumb"
+                />
               </div>
               <h3>Cairn.info</h3>
             </div>
             <p className="resource-desc">
-              Portail francophone de référence donnant accès à plus de 600 revues et 21 000 ouvrages en sciences humaines et sociales.
+              Portail francophone de référence donnant accès à plus de 600
+              revues et 21 000 ouvrages en sciences humaines et sociales.
             </p>
-            <a href="https://shs.cairn.info/" target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://shs.cairn.info/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
@@ -101,14 +155,24 @@ export default function Home() {
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/dicarmes.png" alt="DICAMES" className="resource-thumb" />
+                <img
+                  src="/img/dicarmes.png"
+                  alt="DICAMES"
+                  className="resource-thumb"
+                />
               </div>
               <h3>DICAMES — Archive scientifique</h3>
             </div>
             <p className="resource-desc">
-              Archive numérique institutionnelle du CAMES. Diffuse en accès libre la production scientifique des universités africaines.
+              Archive numérique institutionnelle du CAMES. Diffuse en accès
+              libre la production scientifique des universités africaines.
             </p>
-            <a href="https://dicames.online/" target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://dicames.online/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
@@ -117,14 +181,24 @@ export default function Home() {
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/schoolar.jpg" alt="Google Scholar" className="resource-thumb" />
+                <img
+                  src="/img/schoolar.jpg"
+                  alt="Google Scholar"
+                  className="resource-thumb"
+                />
               </div>
               <h3>Google Scholar</h3>
             </div>
-            <p className="resource-desc"> 
-              Moteur de recherche académique mondial. Permet de trouver articles, thèses, livres et brevets dans toutes les disciplines.
+            <p className="resource-desc">
+              Moteur de recherche académique mondial. Permet de trouver
+              articles, thèses, livres et brevets dans toutes les disciplines.
             </p>
-            <a href="https://scholar.google.com"  target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://scholar.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
@@ -133,14 +207,24 @@ export default function Home() {
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/persee.png" alt="Google Scholar" className="resource-thumb" />
+                <img
+                  src="/img/persee.png"
+                  alt="Google Scholar"
+                  className="resource-thumb"
+                />
               </div>
               <h3>Persée</h3>
             </div>
             <p className="resource-desc">
-            Archives numériques de revues scientifiques françaises en sciences humaines et sociales, en accès entièrement gratuit.
+              Archives numériques de revues scientifiques françaises en sciences
+              humaines et sociales, en accès entièrement gratuit.
             </p>
-            <a href="https://www.persee.fr/" target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://www.persee.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
@@ -149,15 +233,25 @@ export default function Home() {
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/gouv.jpg" alt="Google Scholar" className="resource-thumb" />
+                <img
+                  src="/img/gouv.jpg"
+                  alt="Google Scholar"
+                  className="resource-thumb"
+                />
               </div>
               <h3>LEGIS</h3>
             </div>
             <p className="resource-desc">
-            Base de données officielle des textes de loi de la République du Bénin, mise en œuvre par le Ministère 
-            de la Justice. Accès libre aux normes juridiques en vigueur.
+              Base de données officielle des textes de loi de la République du
+              Bénin, mise en œuvre par le Ministère de la Justice. Accès libre
+              aux normes juridiques en vigueur.
             </p>
-            <a href="https://legis.cdij.bj/" target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://legis.cdij.bj/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
@@ -166,20 +260,29 @@ export default function Home() {
           <div className="resource-card">
             <div className="resource-header">
               <div className="resource-img-container">
-                <img src="/img/gouv.jpg" alt="Google Scholar" className="resource-thumb" />
+                <img
+                  src="/img/gouv.jpg"
+                  alt="Google Scholar"
+                  className="resource-thumb"
+                />
               </div>
               <h3>SGG — Secrétariat Général du Gouvernement</h3>
             </div>
             <p className="resource-desc">
-            Plateforme officielle de publication des décrets, lois promulguées, 
-            ordonnances et comptes rendus du Conseil des Ministres du Bénin.
+              Plateforme officielle de publication des décrets, lois
+              promulguées, ordonnances et comptes rendus du Conseil des
+              Ministres du Bénin.
             </p>
-            <a href="https://sgg.gouv.bj/" target="_blank" rel="noopener noreferrer" className="resource-link">
+            <a
+              href="https://sgg.gouv.bj/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
               <i className="fa-solid fa-arrow-up-right-from-square"></i>
               <span>Accéder</span>
             </a>
           </div>
-          
         </div>
       </section>
 
@@ -207,8 +310,8 @@ export default function Home() {
           </h3>
           <ul className="list-info">
             <li>
-              <span>Lundi – Vendredi</span>
-              <strong className="time-highlight">9h00 – 18h30</strong>
+              <span>Lundi – Vendredi </span>
+              <strong className="time-highlight"> 9h00 – 18h30</strong>
             </li>
             <li>
               <span>Samedi</span>
