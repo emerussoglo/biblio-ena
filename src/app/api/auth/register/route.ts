@@ -7,12 +7,20 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fullName, sex, phone, school, filiere, email, password } = body;
+    const { fullName, sex, userType, phone, school, filiere, email, password } = body;
 
     // 1. Validation de base
-    if (!fullName || !sex || !school || !filiere || !email || !password) {
+    if (!fullName || !sex || !userType || !email || !password) {
       return NextResponse.json(
-        { message: "Tous les champs obligatoires doivent être remplis." },
+        { message: "Veuillez remplir tous les champs obligatoires." },
+        { status: 400 }
+      );
+    }
+
+    // Validation conditionnelle pour les étudiants
+    if (userType === "etudiant" && (!school || !filiere)) {
+      return NextResponse.json(
+        { message: "L'établissement et la filière sont obligatoires pour un étudiant." },
         { status: 400 }
       );
     }
@@ -22,7 +30,7 @@ export async function POST(request: Request) {
       .select()
       .from(users)
       .where(eq(users.email, email.toLowerCase()))
-      .get(); // .get() récupère le premier élément trouvé en SQLite
+      .get();
 
     if (existingUser) {
       return NextResponse.json(
@@ -34,18 +42,19 @@ export async function POST(request: Request) {
     // 3. Hacher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Insérer le nouvel utilisateur dans Turso
-    const newUserId = crypto.randomUUID(); // Génère un ID unique propre
+    // 4. Insérer le nouvel utilisateur
+    const newUserId = crypto.randomUUID();
     await db.insert(users).values({
       id: newUserId,
       fullName,
       sex,
+      userType,
       phone: phone || null,
-      school,
-      filiere,
+      school: userType === "etudiant" ? school : null,
+      filiere: userType === "etudiant" ? filiere : null,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: "student", // Rôle par défaut
+      role: "student",
     });
 
     return NextResponse.json(

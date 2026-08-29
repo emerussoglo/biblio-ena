@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userFullName, setUserFullName] = useState("");
 
   const menuItems = [
-    { name: "Accueil", path: "/dashboard", icon: "fa-house" },
+    { name: "Dashboard", path: "/dashboard", icon: "fa-house" },
     { name: "Catalogue", path: "/catalogue", icon: "fa-book" },
     // { name: "Stats", path: "/stats", icon: "fa-chart-pie" },
     { name: "Profil", path: "/profil", icon: "fa-user" },
@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <hr className="dropdown-divider" />
                 <Link href="/" className="dropdown-item" onClick={closeDropdown}>
-                  <i className="fa-solid fa-house"></i> Page d'accueil
+                  <i className="fa-solid fa-house"></i> Accueil du site
                 </Link>
                 <Link href="/profil" className="dropdown-item" onClick={closeDropdown}>
                   <i className="fa-solid fa-user"></i> Mon Profil

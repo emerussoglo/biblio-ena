@@ -63,6 +63,7 @@ export const config = {
     "/dashboard/:path*",
     "/profil/:path*",
     "/stats/:path*",
+    "/memoires/:path*",
     "/login",
     "/register",
   ],

@@ -16,6 +16,7 @@ export default function RootLayout({
   const isDashboardArea =
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/profil") ||
+    pathname?.startsWith("/memoires") ||
     pathname?.startsWith("/catalogue") ||
     pathname === "/admin" ||
     pathname === "/stats";

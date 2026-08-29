@@ -3,14 +3,15 @@ import { sql } from "drizzle-orm";
 
 
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey(), // ID unique (généré côté serveur via crypto.randomUUID())
+  id: text("id").primaryKey(),
   fullName: text("full_name").notNull(),
   sex: text("sex", { enum: ["M", "F"] }).notNull(),
-  phone: text("phone"), // Optionnel selon ton formulaire
-  school: text("school").notNull(), // Établissement / École
-  filiere: text("filiere").notNull(), // Filière dynamique
-  email: text("email").notNull().unique(), // Unique pour la connexion
-  password: text("password").notNull(), // Mot de passe haché
+  userType: text("user_type", { enum: ["etudiant", "professionnel"] }).default("etudiant").notNull(),
+  phone: text("phone"),
+  school: text("school"), // Devient optionnel pour les professionnels
+  filiere: text("filiere"), // Devient optionnel pour les professionnels
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
   role: text("role", { enum: ["admin", "student", "visitor"] }).default("student").notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
