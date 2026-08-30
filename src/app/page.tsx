@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Faq from "@/components/Faq";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -285,6 +286,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+     <Faq />
+
 
       <main className="content-container">
         <section className="info-card">
@@ -302,6 +306,8 @@ export default function Home() {
           </p>
         </section>
       </main>
+
+     
 
       <div className="info-grid">
         <section className="info-card">
@@ -348,6 +354,10 @@ export default function Home() {
           </ul>
         </section>
       </div>
+
+
+      
+
     </div>
   );
 }
