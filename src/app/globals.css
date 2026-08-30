@@ -528,6 +528,190 @@ body {
    ========================================================================== */
 
 /* Conteneurs d'alignement */
+
+/* ==========================================================================
+   SECTION FONCTIONNALITÉS (FEATURES)
+   ========================================================================== */
+
+.features-section {
+  padding: 80px 20px;
+  background-color: var(--bg-white);
+  position: relative;
+  overflow: hidden;
+}
+
+.features-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.features-header {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 50px auto;
+}
+
+.features-subtitle {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--enam-green);
+  background-color: rgba(26, 93, 43, 0.08);
+  padding: 6px 16px;
+  border-radius: 50px;
+  margin-bottom: 12px;
+}
+
+.features-header h2 {
+  font-size: 2.2rem;
+  color: var(--enam-green-dark);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.features-header p {
+  color: var(--text-dark);
+  opacity: 0.8;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* Grille de Cartes */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Style de la Carte */
+.feature-card {
+  background-color: var(--bg-soft);
+  border: 1px solid rgba(26, 93, 43, 0.12);
+  border-radius: 18px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--enam-green) 0%, var(--enam-green-light) 100%);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  background-color: var(--bg-white);
+  box-shadow: 0 12px 30px rgba(26, 93, 43, 0.1);
+  border-color: rgba(26, 93, 43, 0.3);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+/* En-tête de la Carte */
+.feature-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.feature-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: var(--enam-green);
+  color: var(--bg-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(26, 93, 43, 0.2);
+  transition: var(--transition);
+}
+
+.feature-card:hover .feature-icon-box {
+  background-color: var(--enam-green-dark);
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.feature-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--enam-green-dark);
+  background-color: rgba(26, 93, 43, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Contenu de la carte */
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+}
+
+.feature-description {
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  opacity: 0.82;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+/* Pied de carte avec lien */
+.feature-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--enam-green);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.feature-arrow {
+  transition: var(--transition);
+}
+
+.feature-card:hover .feature-arrow {
+  transform: translateX(6px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .features-section {
+    padding: 50px 15px;
+  }
+  
+  .features-header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
 .content-container {
   width: 100%;
   max-width: 1200px;
@@ -1190,6 +1374,12 @@ body {
   }
 }
 
+
+
+
+
+
+
 /* ==========================================================================
    SECTION RESSOURCES NATIVE & PARTENAIRES
    ========================================================================== */
@@ -1200,6 +1390,51 @@ body {
   padding: 0 20px;
   box-sizing: border-box;
 }
+
+
+/* ==========================================================================
+   EN-TÊTE DE LA SECTION RESSOURCES
+   ========================================================================== */
+.resources-header {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 50px auto;
+}
+
+.resources-subtitle {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--enam-green);
+  background-color: rgba(26, 93, 43, 0.08);
+  padding: 6px 16px;
+  border-radius: 50px;
+  margin-bottom: 12px;
+}
+
+.resources-header h2 {
+  font-size: 2.2rem;
+  color: var(--enam-green-dark);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.resources-header p {
+  color: var(--text-dark);
+  opacity: 0.8;
+  font-size: 1.05rem; 
+  line-height: 1.6;
+}
+
+/* Ajustement responsive pour le titre */
+@media (max-width: 640px) {
+  .resources-header h2 {
+    font-size: 1.75rem;
+  }
+}
+
 
 .resources-grid {
   display: grid;
@@ -1546,6 +1781,17 @@ body {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 /* --- ÉCRAN OVERLAY DU LOADER --- */
 .loader-screen-overlay {
   position: fixed;
@@ -1752,6 +1998,84 @@ body {
     stroke-dashoffset: -440;
   }
 }
+
+
+
+
+
+/* ==========================================================================
+   BOUTON RETOUR EN HAUT (SCROLL TO TOP)
+   ========================================================================== */
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--enam-green);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(26, 93, 43, 0.35);
+  z-index: 99;
+  
+  /* Masqué par défaut avec transition d'apparition */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.8);
+  transition: var(--transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* État quand le bouton devient visible au scroll */
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* Interaction au survol */
+.scroll-to-top:hover {
+  background-color: var(--enam-green-dark);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 22px rgba(18, 65, 30, 0.45);
+}
+
+.scroll-to-top:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* Animation de la flèche au survol */
+.scroll-to-top:hover i {
+  animation: bounceUp 0.6s ease infinite alternate;
+}
+
+@keyframes bounceUp {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+/* Responsive pour mobile */
+@media (max-width: 640px) {
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    font-size: 0.95rem;
+  }
+}
+
+
 
 
 
