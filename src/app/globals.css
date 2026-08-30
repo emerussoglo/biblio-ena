@@ -304,8 +304,8 @@ body {
   
   /* Grille secondaire avec la couleur dorée/lumineuse de surbrillance */
   background-image: radial-gradient(
-    #2d7a3f 1.1px, 
-    transparent 3px
+    #2d7a3f 1px, 
+    transparent 2px
   );
   background-size: 24px 24px;
   pointer-events: none;
@@ -343,10 +343,10 @@ body {
     opacity: 0;
   }
   15% {
-    opacity: .8;
+    opacity: .5;
   }
   85% {
-    opacity: .8;
+    opacity: .5;
   }
   100% {
     -webkit-mask-position: -100% 0;
