@@ -271,12 +271,12 @@ body {
     rgba(26, 93, 43, 0.05) 0%,
     rgba(255, 255, 255, 1) 70%
   );
-  padding: 60px 20px 40px;
+  padding: 50px 15px 35px;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-/* Grille décorative subtile en arrière-plan */
+/* Base de la grille de pointillés (Fixe + Couleur par défaut) */
 .hero-section::before {
   content: "";
   position: absolute;
@@ -285,14 +285,75 @@ body {
   width: 100%;
   height: 100%;
   background-image: radial-gradient(
-    var(--enam-green) 0.75px,
-    transparent 0.75px
+    var(--enam-green) 1px,
+    transparent 3px
   );
   background-size: 24px 24px;
   opacity: 0.15;
   pointer-events: none;
 }
 
+/* Calque de balayage dynamique (Canal+ Wave Style : Gauche -> Droite avec changement de couleur) */
+.hero-section::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* Grille secondaire avec la couleur dorée/lumineuse de surbrillance */
+  background-image: radial-gradient(
+    #2d7a3f 1.1px, 
+    transparent 3px
+  );
+  background-size: 24px 24px;
+  pointer-events: none;
+
+  /* Masque en dégradé linéaire qui effectue le balayage */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(0, 0, 0, 1) 50%,
+    transparent 70%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(0, 0, 0, 1) 50%,
+    transparent 70%,
+    transparent 100%
+  );
+  
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+
+  /* Animation fluide de balayage */
+  animation: canalSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Keyframes pour faire défiler le faisceau lumineux de gauche à droite */
+@keyframes canalSweep {
+  0% {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: .8;
+  }
+  85% {
+    opacity: .8;
+  }
+  100% {
+    -webkit-mask-position: -100% 0;
+    mask-position: -100% 0;
+    opacity: 0;
+  }
+}
 .hero-section .hero-content {
   position: relative;
   z-index: 2;
@@ -1692,6 +1753,8 @@ body {
   }
 }
 
+
+
 /* ==========================================================================
    FOOTER MODERNISÉ
    ========================================================================== */
@@ -1711,6 +1774,14 @@ body {
   z-index: 10;
 }
 
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .main-footer p {
   margin: 0;
   display: inline-flex;
@@ -1725,7 +1796,31 @@ body {
   opacity: 1;
 }
 
-/* Accentuation visuelle discrète sous forme de petit trait vert clair */
+.footer-separator {
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+.credit-text {
+  font-weight: 400;
+}
+
+/* Style du lien du concepteur */
+.designer-link {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  transition: var(--transition, all 0.3s ease);
+}
+
+.designer-link:hover {
+  color: #1ff50b; /* Couleur dorée au survol */
+  text-decoration-color: #1ff50b;
+}
+
+/* Accentuation visuelle discrète sous forme de petit trait vert clair */
 .main-footer::before {
   content: "";
   position: absolute;
@@ -1746,5 +1841,14 @@ body {
   .main-footer {
     padding: 20px 15px;
     font-size: 0.8rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .footer-separator {
+    display: none; /* Masque le séparateur sur mobile pour empiler proprement les textes */
   }
 }
