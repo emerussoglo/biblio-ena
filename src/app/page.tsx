@@ -17,6 +17,33 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Détection des éléments au scroll avec IntersectionObserver
+  useEffect(() => {
+    if (loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+          }
+        });
+      },
+      {
+        threshold: 0.15, // L'élément s'anime dès que 15% est visible à l'écran
+      },
+    );
+
+    const revealElements = document.querySelectorAll(
+      ".reveal, .reveal-left, .reveal-right, .reveal-scale",
+    );
+    revealElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      revealElements.forEach((el) => observer.unobserve(el));
+    };
+  }, [loading]);
+
   if (loading) {
     return (
       <div className="loader-screen-overlay">
@@ -80,7 +107,7 @@ export default function Home() {
   return (
     <div className="home-wrapper">
       <header className="hero-section">
-        <div className="hero-content">
+        <div className="hero-content reveal">
           <h1>
             Bibliothèque de l'École <br />
             <span className="highlight">Nationale d'Administration</span>
@@ -105,10 +132,8 @@ export default function Home() {
         </div>
       </header>
 
-      
-
       <section className="interactive-feature-wrapper">
-        <div className="visual-stage">
+        <div className="visual-stage reveal-scale">
           <div className="main-image-container">
             <img
               src="/img/img1.jpeg"
@@ -129,194 +154,195 @@ export default function Home() {
         </div>
       </section>
 
-      <Features />
-
-     <section className="resources-container">
-  {/* --- NOUVEL EN-TÊTE ICI --- */}
-  <div className="resources-header">
-    <span className="resources-subtitle">Bases de données</span>
-    <h2>Ressources Documentaires en Ligne</h2>
-    <p>
-      Accédez directement aux principales plateformes de recherche académique, 
-      scientifique et juridique pour enrichir vos travaux et mémoires.
-    </p>
-  </div>
-  {/* ------------------------- */}
-
-  <div className="resources-grid">
-    {/* Carte 1 : Cairn */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/cairn.png"
-            alt="Cairn.info"
-            className="resource-thumb"
-          />
-        </div>
-        <h3>Cairn.info</h3>
+      <div className="reveal">
+        <Features />
       </div>
-      <p className="resource-desc">
-        Portail francophone de référence donnant accès à plus de 600
-        revues et 21 000 ouvrages en sciences humaines et sociales.
-      </p>
-      <a
-        href="https://shs.cairn.info/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
 
-    {/* Carte 2 : DICAMES */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/dicarmes.png"
-            alt="DICAMES"
-            className="resource-thumb"
-          />
+      <section className="resources-container">
+        {/* --- EN-TÊTE DE SECTION --- */}
+        <div className="resources-header reveal">
+          <span className="resources-subtitle">Bases de données</span>
+          <h2>Ressources Documentaires en Ligne</h2>
+          <p>
+            Accédez directement aux principales plateformes de recherche
+            académique, scientifique et juridique pour enrichir vos travaux et
+            mémoires.
+          </p>
         </div>
-        <h3>DICAMES — Archive scientifique</h3>
-      </div>
-      <p className="resource-desc">
-        Archive numérique institutionnelle du CAMES. Diffuse en accès
-        libre la production scientifique des universités africaines.
-      </p>
-      <a
-        href="https://dicames.online/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
 
-    {/* Carte 3 : Google Scholar */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/schoolar.jpg"
-            alt="Google Scholar"
-            className="resource-thumb"
-          />
+        <div className="resources-grid">
+          {/* Carte 1 : Cairn */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/cairn.png"
+                  alt="Cairn.info"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>Cairn.info</h3>
+            </div>
+            <p className="resource-desc">
+              Portail francophone de référence donnant accès à plus de 600
+              revues et 21 000 ouvrages en sciences humaines et sociales.
+            </p>
+            <a
+              href="https://shs.cairn.info/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
+
+          {/* Carte 2 : DICAMES */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/dicarmes.png"
+                  alt="DICAMES"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>DICAMES — Archive scientifique</h3>
+            </div>
+            <p className="resource-desc">
+              Archive numérique institutionnelle du CAMES. Diffuse en accès
+              libre la production scientifique des universités africaines.
+            </p>
+            <a
+              href="https://dicames.online/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
+
+          {/* Carte 3 : Google Scholar */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/schoolar.jpg"
+                  alt="Google Scholar"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>Google Scholar</h3>
+            </div>
+            <p className="resource-desc">
+              Moteur de recherche académique mondial. Permet de trouver
+              articles, thèses, livres et brevets dans toutes les disciplines.
+            </p>
+            <a
+              href="https://scholar.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
+
+          {/* Carte 4 : Persée */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/persee.png"
+                  alt="Persée"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>Persée</h3>
+            </div>
+            <p className="resource-desc">
+              Archives numériques de revues scientifiques françaises en sciences
+              humaines et sociales, en accès entièrement gratuit.
+            </p>
+            <a
+              href="https://www.persee.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
+
+          {/* Carte 5 : LEGIS */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/gouv.jpg"
+                  alt="LEGIS Bénin"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>LEGIS</h3>
+            </div>
+            <p className="resource-desc">
+              Base de données officielle des textes de loi de la République du
+              Bénin, mise en œuvre par le Ministère de la Justice. Accès libre
+              aux normes juridiques en vigueur.
+            </p>
+            <a
+              href="https://legis.cdij.bj/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
+
+          {/* Carte 6 : SGG */}
+          <div className="resource-card reveal">
+            <div className="resource-header">
+              <div className="resource-img-container">
+                <img
+                  src="/img/gouv.jpg"
+                  alt="SGG Bénin"
+                  className="resource-thumb"
+                />
+              </div>
+              <h3>SGG — Secrétariat Général du Gouvernement</h3>
+            </div>
+            <p className="resource-desc">
+              Plateforme officielle de publication des décrets, lois
+              promulguées, ordonnances et comptes rendus du Conseil des
+              Ministres du Bénin.
+            </p>
+            <a
+              href="https://sgg.gouv.bj/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="resource-link"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Accéder</span>
+            </a>
+          </div>
         </div>
-        <h3>Google Scholar</h3>
+      </section>
+
+      <div className="reveal">
+        <Faq />
       </div>
-      <p className="resource-desc">
-        Moteur de recherche académique mondial. Permet de trouver
-        articles, thèses, livres et brevets dans toutes les disciplines.
-      </p>
-      <a
-        href="https://scholar.google.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
-
-    {/* Carte 4 : Persée */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/persee.png"
-            alt="Persée"
-            className="resource-thumb"
-          />
-        </div>
-        <h3>Persée</h3>
-      </div>
-      <p className="resource-desc">
-        Archives numériques de revues scientifiques françaises en sciences
-        humaines et sociales, en accès entièrement gratuit.
-      </p>
-      <a
-        href="https://www.persee.fr/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
-
-    {/* Carte 5 : LEGIS */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/gouv.jpg"
-            alt="LEGIS Bénin"
-            className="resource-thumb"
-          />
-        </div>
-        <h3>LEGIS</h3>
-      </div>
-      <p className="resource-desc">
-        Base de données officielle des textes de loi de la République du
-        Bénin, mise en œuvre par le Ministère de la Justice. Accès libre
-        aux normes juridiques en vigueur.
-      </p>
-      <a
-        href="https://legis.cdij.bj/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
-
-    {/* Carte 6 : SGG */}
-    <div className="resource-card">
-      <div className="resource-header">
-        <div className="resource-img-container">
-          <img
-            src="/img/gouv.jpg"
-            alt="SGG Bénin"
-            className="resource-thumb"
-          />
-        </div>
-        <h3>SGG — Secrétariat Général du Gouvernement</h3>
-      </div>
-      <p className="resource-desc">
-        Plateforme officielle de publication des décrets, lois
-        promulguées, ordonnances et comptes rendus du Conseil des
-        Ministres du Bénin.
-      </p>
-      <a
-        href="https://sgg.gouv.bj/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="resource-link"
-      >
-        <i className="fa-solid fa-arrow-up-right-from-square"></i>
-        <span>Accéder</span>
-      </a>
-    </div>
-  </div>
-</section>
-      
-
-
-     <Faq />
-
 
       <main className="content-container">
-        <section className="info-card">
+        <section className="info-card reveal">
           <h3>
             <i className="fa-solid fa-circle-info"></i> À propos du SDA
           </h3>
@@ -332,10 +358,8 @@ export default function Home() {
         </section>
       </main>
 
-     
-
       <div className="info-grid">
-        <section className="info-card">
+        <section className="info-card reveal-left">
           <h3>
             <i className="fa-regular fa-clock"></i> Horaires d'ouverture
           </h3>
@@ -355,7 +379,7 @@ export default function Home() {
           </ul>
         </section>
 
-        <section className="info-card">
+        <section className="info-card reveal-right">
           <h3>
             <i className="fa-solid fa-phone"></i> Contacts
           </h3>
@@ -380,11 +404,7 @@ export default function Home() {
         </section>
       </div>
 
-
-
-<ScrollToTop />
-      
-
+      <ScrollToTop />
     </div>
   );
 }

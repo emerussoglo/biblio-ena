@@ -2176,3 +2176,74 @@ body {
     display: none; /* Masque le séparateur sur mobile pour empiler proprement les textes */
   }
 }
+
+
+
+
+/* ==========================================================================
+   ANIMATIONS REVEAL AU SCROLL
+   ========================================================================== */
+
+/* 1. Apparition standard par le bas (Fade Up) */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 2. Apparition depuis la gauche (Fade Right) */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-left.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 3. Apparition depuis la droite (Fade Left) */
+.reveal-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-right.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 4. Effet d'agrandissement doux (Scale Up) */
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-scale.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Optionnel : Effet cascade sur les cartes de la grille */
+.resources-grid .resource-card:nth-child(1) { transition-delay: 0.1s; }
+.resources-grid .resource-card:nth-child(2) { transition-delay: 0.2s; }
+.resources-grid .resource-card:nth-child(3) { transition-delay: 0.3s; }
+.resources-grid .resource-card:nth-child(4) { transition-delay: 0.1s; }
+.resources-grid .resource-card:nth-child(5) { transition-delay: 0.2s; }
+.resources-grid .resource-card:nth-child(6) { transition-delay: 0.3s; }
