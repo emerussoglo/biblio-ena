@@ -37,10 +37,10 @@ body {
 /* ==========================================================================
    DASHBOARD LAYOUT - STRUCTURE GLOBALE
    ========================================================================== */
-
 .dash-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh; /* Bloque la hauteur à la taille exacte de l'écran */
+  overflow: hidden; /* Empêche la page entière/le body de défiler */
   background-color: var(--dash-bg, #f8fafc);
   color: var(--text-main, #0f172a);
   font-family: inherit;
@@ -52,16 +52,16 @@ body {
 
 .dash-sidebar {
   width: var(--sidebar-width, 260px);
+  min-width: var(--sidebar-width, 260px); /* Garantit la largeur fixe */
   background-color: var(--enam-green-dark, #0d3b19);
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100vh; /* Prend toute la hauteur fixe */
   z-index: 50;
   box-shadow: 4px 0 25px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto; /* Permet le défilement dans la sidebar si le menu comporte beaucoup d'éléments */
 }
 
 .sidebar-header {
@@ -141,11 +141,14 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh; /* Occupe la même hauteur fixe que la fenêtre */
   min-width: 0;
+  overflow: hidden;
 }
 
 .dash-topbar {
   height: var(--topbar-height, 70px);
+  min-height: var(--topbar-height, 70px); /* Empêche la réduction en hauteur */
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -154,8 +157,6 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 36px;
-  position: sticky;
-  top: 0;
   z-index: 40;
 }
 
@@ -291,6 +292,8 @@ body {
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* ==========================================================================
@@ -1285,7 +1288,7 @@ body {
   }
 
   .select-filter {
-    flex: 1;
+    flex: 1; 
     min-width: 0;
   }
 
@@ -1372,3 +1375,330 @@ body {
     transform: translateY(0);
   }
 }
+
+
+
+
+
+
+/* ==========================================================================
+   PAGE DÉPÔT DE MÉMOIRE - STYLES SPÉCIFIQUES
+   ========================================================================== */
+
+.submit-memoire-wrapper {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 0 30px 0;
+}
+
+.submit-header {
+  margin-bottom: 10px;
+}
+
+
+.submit-header h1 {
+  font-size: 1.8rem;
+  color: #0d3b19;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.submit-header p {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Bannière d'état */
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-banner.success {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.status-banner.error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Cartes de section */
+.submit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 25px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.step-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--enam-green, #1a5d2b);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.card-title h2 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.card-title p {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Grille de champs */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.req {
+  color: #dc2626;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--enam-green, #1a5d2b);
+  box-shadow: 0 0 0 3px rgba(26, 93, 43, 0.12);
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Zone Drag and Drop PDF */
+.dropzone {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 30px 20px;
+  text-align: center;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.active {
+  border-color: var(--enam-green, #1a5d2b);
+  background-color: rgba(26, 93, 43, 0.03);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.dropzone-label {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--enam-green, #1a5d2b);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 12px;
+}
+
+.drop-title {
+  font-size: 0.95rem;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.drop-title span {
+  color: var(--enam-green, #1a5d2b);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.drop-sub {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Fichier sélectionné */
+.selected-file-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #ffffff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.pdf-icon {
+  font-size: 2rem;
+  color: #dc2626;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.file-size {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.btn-remove-file {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+
+.btn-remove-file:hover {
+  color: #dc2626;
+}
+
+/* Soumission */
+.form-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit-memoire {
+  background-color: var(--enam-green, #1a5d2b);
+  color: #ffffff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(26, 93, 43, 0.25);
+}
+
+.btn-submit-memoire:hover {
+  background-color: var(--enam-green-dark, #0d3b19);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   RESPONSIVE (MOBILE & TABLETTE)
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+
+  .form-card {
+    padding: 15px 12px;
+  }
+
+  .btn-submit-memoire {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+

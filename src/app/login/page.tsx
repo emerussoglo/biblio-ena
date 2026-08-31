@@ -30,7 +30,7 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok) { 
         throw new Error(data.message || "Une erreur est survenue.");
       }
 

@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: "fa-house" },
     { name: "Catalogue", path: "/catalogue", icon: "fa-book" },
-    // { name: "Stats", path: "/stats", icon: "fa-chart-pie" },
+    // { name: "Mémoires", path: "/memoires", icon: "fa-book-open" },
     { name: "Profil", path: "/profil", icon: "fa-user" },
     // { name: "Admin", path: "/admin", icon: "fa-user-shield" },
   ];

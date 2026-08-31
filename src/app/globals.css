@@ -42,9 +42,10 @@ body {
    ========================================================================== */
 
 .main-nav {
-  position: sticky;
-  top: 0;
   z-index: 2000;
+  position: sticky;
+  width: 100%;
+  top: 0;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -923,7 +924,6 @@ body {
     font-size: 0.88rem;
   }
 }
-
 /* --- PAGES D'AUTHENTIFICATION --- */
 .auth-page {
   display: flex;
@@ -931,7 +931,13 @@ body {
   justify-content: center;
   padding: 40px 20px;
   min-height: calc(100vh - 160px); /* Ajuste selon la taille nav/footer */
-  background: var(--bg-soft);
+  
+  /* Couleur de fond de base */
+  background-color: var(--bg-soft);
+  
+  /* Motif de pointillés en arrière-plan */
+  background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1.58px, transparent 1.6px);
+  background-size: 20px 20px; /* Espace entre chaque point */
 }
 
 .auth-card {
