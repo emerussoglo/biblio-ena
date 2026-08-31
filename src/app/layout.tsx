@@ -39,7 +39,7 @@ export default function RootLayout({
       </head>
       <body>
         <div className="main-layout">
-          {/* On n'affiche la Navbar que si on n'est PAS dans les zones listées */}
+        
           {!isDashboardArea && <Navbar />}
           
           <main className={isDashboardArea ? "no-padding" : "page-content"}>

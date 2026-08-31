@@ -404,7 +404,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/* <ScrollToTop /> */}
+      <ScrollToTop />
     </div>
   );
 }

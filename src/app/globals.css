@@ -16,6 +16,11 @@
   --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1660,7 +1665,7 @@ body {
   background-color: var(--bg-white);
   border: 1px solid rgba(26, 93, 43, 0.15);
   border-radius: 16px;
-  padding: 18px 22px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: var(--transition);
   box-shadow: var(--shadow);
@@ -1685,7 +1690,7 @@ body {
 .faq-question-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 5px;
 }
 
 .faq-icon-wrapper {
@@ -1697,7 +1702,7 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--enam-green);
-  font-size: 1.15rem;
+  font-size: 1rem;
   flex-shrink: 0;
   transition: var(--transition);
 }
@@ -1710,7 +1715,7 @@ body {
 .faq-question-text {
   font-weight: 600;
   color: var(--text-dark);
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .faq-toggle-btn {
