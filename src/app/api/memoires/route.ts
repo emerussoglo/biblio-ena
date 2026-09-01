@@ -1,21 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { memoires } from "@/lib/db/schema";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { desc } from "drizzle-orm";
+import { put } from "@vercel/blob";
 
 // ==========================================
 // 1. GET : Récupérer tous les mémoires pour l'Admin
 // ==========================================
 export async function GET() {
   try {
-    // Récupère tous les mémoires de la base de données
     const data = await db
       .select()
       .from(memoires);
-      // Remarque : Si vous avez un champ de date (ex: createdAt), vous pouvez ajouter :
-      // .orderBy(desc(memoires.createdAt));
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
@@ -64,21 +59,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Sauvegarde physique du fichier sur le serveur
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const uploadDir = path.join(process.cwd(), "public/uploads/memoires");
-    await mkdir(uploadDir, { recursive: true });
-
+    // 3. Sauvegarde du fichier PDF sur Vercel Blob (au lieu du disque local)
     const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    const filePath = path.join(uploadDir, safeFileName);
-    await writeFile(filePath, buffer);
+    
+    const blob = await put(`memoires/${safeFileName}`, file, {
+      access: "public",
+    });
 
-    const fileUrl = `/uploads/memoires/${safeFileName}`;
+    // L'URL publique renvoyée par Vercel Blob (ex: https://...public.blob.vercel-storage.com/...)
+    const fileUrl = blob.url;
     const memoireId = crypto.randomUUID();
 
-    // 4. Insertion dans Turso via Drizzle
+    // 4. Insertion de l'URL dans Turso via Drizzle
     await db.insert(memoires).values({
       id: memoireId,
       title,

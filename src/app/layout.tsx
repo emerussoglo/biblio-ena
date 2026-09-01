@@ -38,7 +38,7 @@ export default function RootLayout({
         />
         <link rel="shortcut icon" href="img/logo.jpeg" type="image/x-icon" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <div className="main-layout">
         
           {!isDashboardArea && <Navbar />}
