@@ -26,3 +26,30 @@ export const visits = sqliteTable("visits", {
   departureAt: text("departure_at"), // Nullable jusqu'à ce qu'il clique sur Sortie
   date: text("date").notNull(), // Format YYYY-MM-DD pour faciliter les stats globales
 });
+
+
+
+/* --- NOUVELLE TABLE : MEMOIRES --- */
+export const memoires = sqliteTable("memoires", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  abstract: text("abstract"),
+  year: text("year"),
+  keywords: text("keywords"),
+  fullName: text("full_name").notNull(), // Champ unifié "Nom et Prénom"
+  matricule: text("matricule"),
+  filiere: text("filiere"),
+  academicYear: text("academic_year"),
+  supervisor: text("supervisor"),
+  internshipLocation: text("internship_location"),
+  email: text("email"),
+  phone: text("phone"),
+  submissionDate: text("submission_date").default(sql`CURRENT_TIMESTAMP`).notNull(), // Générée automatiquement
+  fileUrl: text("file_url").notNull(), // URL ou chemin du fichier PDF
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+

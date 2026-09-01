@@ -17,6 +17,7 @@ export default function RootLayout({
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/profil") ||
     pathname?.startsWith("/memoires") ||
+    pathname?.startsWith("/admin/memoires") ||
     pathname?.startsWith("/catalogue") ||
     pathname === "/admin" ||
     pathname === "/stats";

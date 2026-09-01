@@ -8,20 +8,19 @@ export default function SubmitMemoirePage() {
     abstract: "",
     year: "2026",
     keywords: "",
-    lastName: "",
-    firstName: "",
+    fullName: "", // Nom et Prénom unifiés
     matricule: "",
     filiere: "",
-    academicYear: " ",
+    academicYear: "2025-2026",
     supervisor: "",
     internshipLocation: "",
     email: "",
     phone: "",
-    submissionDate: new Date().toISOString().split("T")[0],
   });
 
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error" | ""; msg: string }>({
     type: "",
     msg: "",
@@ -73,18 +72,60 @@ export default function SubmitMemoirePage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
       setStatus({ type: "error", msg: "Veuillez joindre le fichier PDF de votre mémoire." });
       return;
     }
 
-    // Logique d'envoi vers le backend / API
-    setStatus({
-      type: "success",
-      msg: "Votre mémoire a été déposé avec succès ! Un récépissé (quitus) a été généré.",
-    });
+    setIsSubmitting(true);
+    setStatus({ type: "", msg: "" });
+
+    try {
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        payload.append(key, value);
+      });
+      payload.append("file", file);
+
+      const res = await fetch("/api/memoires", {
+        method: "POST",
+        body: payload,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Une erreur s'est produite.");
+      }
+
+      setStatus({
+        type: "success",
+        msg: "Votre mémoire a été déposé avec succès ! Un récépissé (quitus) a été généré.",
+      });
+
+      // Réinitialisation du formulaire
+      setFormData({
+        title: "",
+        abstract: "",
+        year: "2026",
+        keywords: "",
+        fullName: "",
+        matricule: "",
+        filiere: "",
+        academicYear: "2025-2026",
+        supervisor: "",
+        internshipLocation: "",
+        email: "",
+        phone: "",
+      });
+      setFile(null);
+    } catch (err: any) {
+      setStatus({ type: "error", msg: err.message || "Impossible d'envoyer le formulaire." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -147,7 +188,7 @@ export default function SubmitMemoirePage() {
                 id="year"
                 name="year"
                 placeholder="ex. 2026"
-                value={""}
+                value={formData.year}
                 onChange={handleChange}
               />
             </div>
@@ -177,29 +218,16 @@ export default function SubmitMemoirePage() {
           </div>
 
           <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="lastName">
-                Nom <span className="req">*</span>
+            <div className="form-group full-width">
+              <label htmlFor="fullName">
+                Nom et Prénom <span className="req">*</span>
               </label>
               <input
                 type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="firstName">
-                Prénom <span className="req">*</span>
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
+                id="fullName"
+                name="fullName"
+                placeholder="Ex: SOGLO Emérus"
+                value={formData.fullName}
                 onChange={handleChange}
                 required
               />
@@ -267,7 +295,6 @@ export default function SubmitMemoirePage() {
 
             <div className="form-group">
               <label htmlFor="email">Email étudiant</label>
-
               <input
                 type="email"
                 id="email"
@@ -306,21 +333,10 @@ export default function SubmitMemoirePage() {
 
           <div className="form-grid">
             <div className="form-group full-width">
-              <label htmlFor="submissionDate">Date de dépôt</label>
-              <input
-                type="date"
-                id="submissionDate"
-                name="submissionDate"
-                value={""}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group full-width">
               <label>
-                Mémoire numérique (PDF uniquement) <span className="req">*</span>
+                Mémoire numérique (PDF uniquement, max 20 Mo) <span className="req">*</span>
               </label>
-              
+
               <div
                 className={`dropzone ${dragActive ? "active" : ""} ${file ? "file-selected" : ""}`}
                 onDragEnter={handleDrag}
@@ -344,7 +360,7 @@ export default function SubmitMemoirePage() {
                     <p className="drop-title">
                       <span>Cliquez pour parcourir</span> ou glissez-déposez le PDF ici
                     </p>
-                    <p className="drop-sub">Taille maximale</p>
+                    <p className="drop-sub">Taille maximale : 20 Mo</p>
                   </label>
                 ) : (
                   <div className="selected-file-card">
@@ -368,8 +384,9 @@ export default function SubmitMemoirePage() {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="btn-submit-memoire">
-              <i className="fa-solid fa-paper-plane"></i> Déposer le mémoire
+            <button type="submit" className="btn-submit-memoire" disabled={isSubmitting}>
+              <i className="fa-solid fa-paper-plane"></i>
+              {isSubmitting ? "Envoi en cours..." : "Déposer le mémoire"}
             </button>
           </div>
         </section>

@@ -1,0 +1,297 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+
+interface Memoire {
+  id: string;
+  title: string;
+  abstract: string | null;
+  year: string | null;
+  keywords: string | null;
+  fullName: string;
+  matricule: string | null;
+  filiere: string | null;
+  academicYear: string | null;
+  supervisor: string | null;
+  internshipLocation: string | null;
+  email: string | null;
+  phone: string | null;
+  submissionDate: string;
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
+export default function AdminMemoiresPage() {
+  const [memoiresList, setMemoiresList] = useState<Memoire[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedMemoire, setSelectedMemoire] = useState<Memoire | null>(null);
+
+  // Récupération des mémoires depuis la route /api/memoires
+  useEffect(() => {
+    async function fetchMemoires() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/memoires");
+        if (res.ok) {
+          const data = await res.json();
+          setMemoiresList(data);
+        } else {
+          console.error("Erreur serveur lors de la récupération des mémoires");
+        }
+      } catch (err) {
+        console.error("Erreur chargement mémoires:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchMemoires();
+  }, []);
+
+  // Filtrage par recherche
+  const filteredMemoires = memoiresList.filter((item) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      item.title?.toLowerCase().includes(term) ||
+      item.fullName?.toLowerCase().includes(term) ||
+      (item.filiere && item.filiere.toLowerCase().includes(term)) ||
+      (item.matricule && item.matricule.toLowerCase().includes(term))
+    );
+  });
+
+  const formatSize = (bytes: number) => {
+    if (!bytes) return "0 Mo";
+    return (bytes / (1024 * 1024)).toFixed(2) + " Mo";
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="admin-memoires-container">
+      <div className="admin-page-header">
+        <div>
+          <h1>Gestion des Mémoires</h1>
+          <p>Consultez et gérez les mémoires déposés par les étudiants.</p>
+        </div>
+        <div className="search-box">
+          <i className="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Rechercher par titre, nom, filière..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <i className="fa-solid fa-spinner fa-spin"></i>
+          <p>Chargement des mémoires...</p>
+        </div>
+      ) : filteredMemoires.length === 0 ? (
+        <div className="empty-state">
+          <i className="fa-solid fa-folder-open"></i>
+          <p>Aucun mémoire trouvé.</p>
+        </div>
+      ) : (
+        <div className="table-responsive">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Titre / Sujet</th>
+                <th>Étudiant</th>
+                <th>Filière</th>
+                <th>Année</th>
+                <th>Date de dépôt</th>
+                <th>Fichier</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMemoires.map((item) => (
+                <tr key={item.id}>
+                  <td className="title-cell">
+                    <span className="memoire-title">{item.title}</span>
+                  </td>
+                  <td>
+                    <div className="user-cell">
+                      <span className="user-name">{item.fullName}</span>
+                      {item.matricule && (
+                        <span className="user-mat">Mat: {item.matricule}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>{item.filiere || "-"}</td>
+                  <td>{item.year || "-"}</td>
+                  <td>{formatDate(item.submissionDate || item.createdAt)}</td>
+                  <td>
+                    <a
+                      href={item.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="file-link"
+                      title={item.fileName}
+                    >
+                      <i className="fa-solid fa-file-pdf"></i>
+                      <span>{formatSize(item.fileSize)}</span>
+                    </a>
+                  </td>
+                  <td>
+                    <button
+                      className="btn-action view-btn"
+                      onClick={() => setSelectedMemoire(item)}
+                      title="Voir les détails"
+                    >
+                      <i className="fa-solid fa-eye"></i> Détails
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODALE DE DÉTAILS DU MÉMOIRE */}
+      {selectedMemoire && (
+        <div
+          className="modal-overlay"
+          onClick={() => setSelectedMemoire(null)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Détails du mémoire</h2>
+              <button
+                className="btn-close"
+                onClick={() => setSelectedMemoire(null)}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>Informations Académiques</h3>
+                <div className="detail-grid">
+                  <div>
+                    <label>Étudiant :</label>
+                    <p>{selectedMemoire.fullName}</p>
+                  </div>
+                  <div>
+                    <label>Matricule :</label>
+                    <p>{selectedMemoire.matricule || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Filière / Spécialité :</label>
+                    <p>{selectedMemoire.filiere || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Année académique :</label>
+                    <p>{selectedMemoire.academicYear || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Email :</label>
+                    <p>{selectedMemoire.email || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Téléphone :</label>
+                    <p>{selectedMemoire.phone || "Non renseigné"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <hr />
+
+              <div className="detail-section">
+                <h3>Métadonnées du Mémoire</h3>
+                <div className="detail-field">
+                  <label>Titre :</label>
+                  <p className="highlight-text">{selectedMemoire.title}</p>
+                </div>
+                <div className="detail-field">
+                  <label>Résumé (Abstract) :</label>
+                  <p className="abstract-text">
+                    {selectedMemoire.abstract || "Aucun résumé fourni."}
+                  </p>
+                </div>
+                <div className="detail-grid">
+                  <div>
+                    <label>Directeur de mémoire :</label>
+                    <p>{selectedMemoire.supervisor || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Lieu de stage :</label>
+                    <p>
+                      {selectedMemoire.internshipLocation || "Non renseigné"}
+                    </p>
+                  </div>
+                  <div>
+                    <label>Année de soutenance :</label>
+                    <p>{selectedMemoire.year || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Mots-clés :</label>
+                    <p>{selectedMemoire.keywords || "Aucun"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <hr />
+
+              <div className="detail-section">
+                <h3>Fichier Téléversé</h3>
+                <div className="file-box">
+                  <i className="fa-solid fa-file-pdf pdf-big-icon"></i>
+                  <div className="file-details">
+                    <span className="file-title">
+                      {selectedMemoire.fileName}
+                    </span>
+                    <span className="file-meta">
+                      Taille: {formatSize(selectedMemoire.fileSize)} | Déposé
+                      le:{" "}
+                      {formatDate(
+                        selectedMemoire.submissionDate ||
+                          selectedMemoire.createdAt
+                      )}
+                    </span>
+                  </div>
+                  <div className="file-actions">
+                    <a
+                      href={selectedMemoire.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-file open"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i>{" "}
+                      Ouvrir
+                    </a>
+                    <a
+                      href={selectedMemoire.fileUrl}
+                      download
+                      className="btn-file download"
+                    >
+                      <i className="fa-solid fa-download"></i> Télécharger
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

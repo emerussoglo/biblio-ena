@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminMenuItems = [
     { name: "Admin", path: "/admin", icon: "fa-user-shield" },
     { name: "Statistiques", path: "/stats", icon: "fa-chart-pie" },
+     { name: "Mémoires", path: "/admin/memoires", icon: "fa-book-open" },
   ];
 
   // Récupérer le nom de l'admin depuis notre API mutualisée /api/auth/me
