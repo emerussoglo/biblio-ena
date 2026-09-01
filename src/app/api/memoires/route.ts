@@ -2,16 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { memoires } from "@/lib/db/schema";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 // ==========================================
 // 1. GET : Récupérer tous les mémoires pour l'Admin
 // ==========================================
 export async function GET() {
   try {
-    const data = await db
-      .select()
-      .from(memoires);
-
+    const data = await db.select().from(memoires);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Erreur lors de la récupération des mémoires :", error);
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
 
-    // 1. Récupération des données du formulaire
+    // Récupération des données du formulaire
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const year = formData.get("year") as string;
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
     const phone = formData.get("phone") as string;
     const file = formData.get("file") as File | null;
 
-    // 2. Validation des champs obligatoires
+    // Validation des champs obligatoires
     if (!title || !fullName || !file) {
       return NextResponse.json(
         { message: "Le titre, le nom/prénom et le fichier PDF sont obligatoires." },
@@ -59,18 +58,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Sauvegarde du fichier PDF sur Vercel Blob (au lieu du disque local)
-    const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    
-    const blob = await put(`memoires/${safeFileName}`, file, {
-      access: "public",
-    });
+    let fileUrl = "";
 
-    // L'URL publique renvoyée par Vercel Blob (ex: https://...public.blob.vercel-storage.com/...)
-    const fileUrl = blob.url;
+    // Détection de l'environnement : Production (Vercel) vs Local
+    if (process.env.NODE_ENV === "production") {
+      // Stockage sur Vercel Blob en ligne
+      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+      const blob = await put(`memoires/${safeFileName}`, file, {
+        access: "public",
+      });
+      fileUrl = blob.url; // URL publique HTTPS accessible partout
+    } else {
+      // Stockage local (Sur la machine dev)
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      const uploadDir = path.join(process.cwd(), "public/uploads/memoires");
+      await mkdir(uploadDir, { recursive: true });
+
+      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+      const filePath = path.join(uploadDir, safeFileName);
+      await writeFile(filePath, buffer);
+
+      fileUrl = `/uploads/memoires/${safeFileName}`;
+    }
+
     const memoireId = crypto.randomUUID();
 
-    // 4. Insertion de l'URL dans Turso via Drizzle
+    // Insertion des données + l'URL du fichier dans Turso via Drizzle
     await db.insert(memoires).values({
       id: memoireId,
       title,
@@ -97,7 +112,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Erreur lors du dépôt du mémoire :", error);
     return NextResponse.json(
-      { message: "Une erreur interne est survenue." },
+      { message: "Une erreur interne est survenue lors du téléversement." },
       { status: 500 }
     );
   }
