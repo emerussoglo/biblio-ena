@@ -65,9 +65,9 @@ export async function POST(request: Request) {
       // Stockage sur Vercel Blob en ligne
       const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
       const blob = await put(`memoires/${safeFileName}`, file, {
-        access: "folder",
+        access: "private",
       });
-      fileUrl = blob.url; // URL publique HTTPS accessible partout
+      fileUrl = blob.url;
     } else {
       // Stockage local (Sur la machine dev)
       const bytes = await file.arrayBuffer();
