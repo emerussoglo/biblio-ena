@@ -7,7 +7,7 @@ import "../dashboard.css";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  
+   
   // États pour le menu utilisateur et les infos de l'admin
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInitial, setUserInitial] = useState("A"); // "A" par défaut pour Admin
