@@ -6,7 +6,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
 // ==========================================
-// 1. GET : Récupérer tous les mémoires
+// 1. GET : Récupérer tous les mémoires pour l'Admin
 // ==========================================
 export async function GET() {
   try {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
 
-    // Récupération des données
+    // Récupération des données du formulaire
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const year = formData.get("year") as string;
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const phone = formData.get("phone") as string;
     const file = formData.get("file") as File | null;
 
-    // Validation
+    // Validation des champs obligatoires
     if (!title || !fullName || !file) {
       return NextResponse.json(
         { message: "Le titre, le nom/prénom et le fichier PDF sont obligatoires." },
@@ -59,26 +59,24 @@ export async function POST(request: Request) {
     }
 
     let fileUrl = "";
-    const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
 
-    // VÉRIFICATION D'ENVIRONNEMENT SÉCURISÉE
-    // Si la clé Vercel Blob existe (ou si on est sur Vercel), on utilise Vercel Blob
-    const isVercel = process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN;
-
-    if (isVercel) {
-      // Stockage Vercel Blob (En ligne)
+    // Détection de l'environnement : Production (Vercel) vs Local
+    if (process.env.NODE_ENV === "production") {
+      // Stockage sur Vercel Blob en ligne
+      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
       const blob = await put(`memoires/${safeFileName}`, file, {
-        access: "public",
+        access: "folder",
       });
-      fileUrl = blob.url;
+      fileUrl = blob.url; // URL publique HTTPS accessible partout
     } else {
-      // Stockage local (Disque dur)
+      // Stockage local (Sur la machine dev)
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
       const uploadDir = path.join(process.cwd(), "public/uploads/memoires");
       await mkdir(uploadDir, { recursive: true });
 
+      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
       const filePath = path.join(uploadDir, safeFileName);
       await writeFile(filePath, buffer);
 
@@ -87,7 +85,7 @@ export async function POST(request: Request) {
 
     const memoireId = crypto.randomUUID();
 
-    // Insertion Turso
+    // Insertion des données + l'URL du fichier dans Turso via Drizzle
     await db.insert(memoires).values({
       id: memoireId,
       title,
