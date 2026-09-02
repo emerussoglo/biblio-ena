@@ -27,31 +27,69 @@ interface Memoire {
 export default function AdminMemoiresPage() {
   const [memoiresList, setMemoiresList] = useState<Memoire[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedMemoire, setSelectedMemoire] = useState<Memoire | null>(null);
 
-  // Récupération des mémoires depuis la route /api/memoires
+  // Récupération des mémoires
   useEffect(() => {
-    async function fetchMemoires() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/memoires");
-        if (res.ok) {
-          const data = await res.json();
-          setMemoiresList(data);
-        } else {
-          console.error("Erreur serveur lors de la récupération des mémoires");
-        }
-      } catch (err) {
-        console.error("Erreur chargement mémoires:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchMemoires();
   }, []);
 
-  // Filtrage par recherche
+  const fetchMemoires = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/memoires");
+      if (res.ok) {
+        const data = await res.json();
+        setMemoiresList(data);
+      } else {
+        console.error("Erreur serveur lors de la récupération des mémoires");
+      }
+    } catch (err) {
+      console.error("Erreur chargement mémoires:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Voulez-vous vraiment supprimer le mémoire "${title}" ? Cette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+
+      // ✅ Utilisation du bon chemin : /api/admin/memoires
+      const res = await fetch(`/api/admin/memoires?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setMemoiresList((prev) => prev.filter((m) => m.id !== id));
+        if (selectedMemoire?.id === id) { 
+          setSelectedMemoire(null);
+        }
+      } else {
+        const text = await res.text();
+        let errorMessage = "Erreur lors de la suppression.";
+        try {
+          const errData = JSON.parse(text);
+          errorMessage = errData.message || errorMessage;
+        } catch {
+          errorMessage = `Erreur ${res.status}: ${res.statusText}`;
+        }
+        alert(errorMessage);
+      }
+    } catch (err) {
+      console.error("Erreur lors de la suppression :", err);
+      alert("Une erreur réseau est survenue.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredMemoires = memoiresList.filter((item) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -150,13 +188,28 @@ export default function AdminMemoiresPage() {
                     </a>
                   </td>
                   <td>
-                    <button
-                      className="btn-action view-btn"
-                      onClick={() => setSelectedMemoire(item)}
-                      title="Voir les détails"
-                    >
-                      <i className="fa-solid fa-eye"></i> Détails
-                    </button>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        className="btn-action view-btn"
+                        onClick={() => setSelectedMemoire(item)}
+                        title="Voir les détails"
+                      >
+                        <i className="fa-solid fa-eye"></i> Détails
+                      </button>
+                      <button
+                        className="btn-action delete-btn"
+                        style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                        onClick={() => handleDelete(item.id, item.title)}
+                        disabled={deletingId === item.id}
+                        title="Supprimer"
+                      >
+                        {deletingId === item.id ? (
+                          <i className="fa-solid fa-spinner fa-spin"></i>
+                        ) : (
+                          <i className="fa-solid fa-trash"></i>
+                        )}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -260,11 +313,9 @@ export default function AdminMemoiresPage() {
                       {selectedMemoire.fileName}
                     </span>
                     <span className="file-meta">
-                      Taille: {formatSize(selectedMemoire.fileSize)} | Déposé
-                      le:{" "}
+                      Taille: {formatSize(selectedMemoire.fileSize)} | Déposé le:{" "}
                       {formatDate(
-                        selectedMemoire.submissionDate ||
-                          selectedMemoire.createdAt
+                        selectedMemoire.submissionDate || selectedMemoire.createdAt
                       )}
                     </span>
                   </div>
@@ -275,16 +326,16 @@ export default function AdminMemoiresPage() {
                       rel="noopener noreferrer"
                       className="btn-file open"
                     >
-                      <i className="fa-solid fa-arrow-up-right-from-square"></i>{" "}
-                      Ouvrir
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir
                     </a>
-                    <a
-                      href={selectedMemoire.fileUrl}
-                      download
-                      className="btn-file download"
+                    <button
+                      className="btn-file delete"
+                      style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "4px", cursor: "pointer" }}
+                      onClick={() => handleDelete(selectedMemoire.id, selectedMemoire.title)}
+                      disabled={deletingId === selectedMemoire.id}
                     >
-                      <i className="fa-solid fa-download"></i> Télécharger
-                    </a>
+                      <i className="fa-solid fa-trash"></i> Supprimer
+                    </button>
                   </div>
                 </div>
               </div>
