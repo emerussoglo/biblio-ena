@@ -39,7 +39,7 @@ export default function AdminMemoiresPage() {
   const fetchMemoires = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/memoires");
+      const res = await fetch("/api/admin/memoires");
       if (res.ok) {
         const data = await res.json();
         setMemoiresList(data);
@@ -53,22 +53,25 @@ export default function AdminMemoiresPage() {
     }
   };
 
- const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Voulez-vous vraiment supprimer le mémoire "${title}" ? Cette action est irréversible.`)) {
+  const handleDelete = async (id: string, title: string) => {
+    if (
+      !confirm(
+        `Voulez-vous vraiment supprimer le mémoire "${title}" ? Cette action est irréversible.`
+      )
+    ) {
       return;
     }
 
     try {
       setDeletingId(id);
 
-      // ✅ Utilisation du bon chemin : /api/admin/memoires
       const res = await fetch(`/api/admin/memoires?id=${id}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
         setMemoiresList((prev) => prev.filter((m) => m.id !== id));
-        if (selectedMemoire?.id === id) { 
+        if (selectedMemoire?.id === id) {
           setSelectedMemoire(null);
         }
       } else {
@@ -198,7 +201,14 @@ export default function AdminMemoiresPage() {
                       </button>
                       <button
                         className="btn-action delete-btn"
-                        style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                        style={{
+                          backgroundColor: "#dc2626",
+                          color: "#fff",
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
                         onClick={() => handleDelete(item.id, item.title)}
                         disabled={deletingId === item.id}
                         title="Supprimer"
@@ -315,11 +325,13 @@ export default function AdminMemoiresPage() {
                     <span className="file-meta">
                       Taille: {formatSize(selectedMemoire.fileSize)} | Déposé le:{" "}
                       {formatDate(
-                        selectedMemoire.submissionDate || selectedMemoire.createdAt
+                        selectedMemoire.submissionDate ||
+                          selectedMemoire.createdAt
                       )}
                     </span>
                   </div>
                   <div className="file-actions">
+                    {/* BOUTON OUVRIR DANS UN NOUVEL ONGLET */}
                     <a
                       href={selectedMemoire.fileUrl}
                       target="_blank"
@@ -328,13 +340,51 @@ export default function AdminMemoiresPage() {
                     >
                       <i className="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir
                     </a>
+
+                    {/* BOUTON TÉLÉCHARGER RÉINTÉGRÉ */}
+                    <a
+                      href={selectedMemoire.fileUrl}
+                      download={selectedMemoire.fileName || "memoire.pdf"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-file download"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "8px 12px",
+                        borderRadius: "4px",
+                        textDecoration: "none",
+                        backgroundColor: "#2563eb",
+                        color: "#fff",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <i className="fa-solid fa-download"></i> Télécharger
+                    </a>
+
+                    {/* BOUTON SUPPRIMER */}
                     <button
                       className="btn-file delete"
-                      style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "4px", cursor: "pointer" }}
-                      onClick={() => handleDelete(selectedMemoire.id, selectedMemoire.title)}
+                      style={{
+                        backgroundColor: "#dc2626",
+                        color: "#fff",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() =>
+                        handleDelete(selectedMemoire.id, selectedMemoire.title)
+                      }
                       disabled={deletingId === selectedMemoire.id}
                     >
-                      <i className="fa-solid fa-trash"></i> Supprimer
+                      {deletingId === selectedMemoire.id ? (
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                      ) : (
+                        <i className="fa-solid fa-trash"></i>
+                      )}{" "}
+                      Supprimer
                     </button>
                   </div>
                 </div>
