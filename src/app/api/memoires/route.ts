@@ -64,10 +64,12 @@ export async function POST(request: Request) {
     if (process.env.NODE_ENV === "production") {
       // Stockage sur Vercel Blob en ligne
       const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+      
       const blob = await put(`memoires/${safeFileName}`, file, {
-        access: "private",
+        access: "public", // <-- REMETTRE "public" ICI
       });
-      fileUrl = blob.url;
+      
+      fileUrl = blob.url; // Génère une URL publique HTTPS accessible directement
     } else {
       // Stockage local (Sur la machine dev)
       const bytes = await file.arrayBuffer();
