@@ -4,7 +4,12 @@ import { memoires } from "@/lib/db/schema";
 import { put } from "@vercel/blob";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "fallback_secret_key_production"
+);
 // ==========================================
 // 1. GET : Récupérer tous les mémoires pour l'Admin
 // ==========================================
@@ -20,15 +25,23 @@ export async function GET() {
     );
   }
 }
-
-// ==========================================
-// 2. POST : Ajouter un nouveau mémoire
-// ==========================================
 export async function POST(request: Request) {
   try {
+    // 1. Récupérer l'ID de l'utilisateur connecté s'il existe
+    let userId: string | null = null;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("sda_session_token")?.value;
+      if (token) {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        userId = payload.id as string;
+      }
+    } catch {
+      // Si pas connecté ou token invalide, userId reste null
+    }
+
     const formData = await request.formData();
 
-    // Récupération des données du formulaire
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const year = formData.get("year") as string;
@@ -43,7 +56,6 @@ export async function POST(request: Request) {
     const phone = formData.get("phone") as string;
     const file = formData.get("file") as File | null;
 
-    // Validation des champs obligatoires
     if (!title || !fullName || !file) {
       return NextResponse.json(
         { message: "Le titre, le nom/prénom et le fichier PDF sont obligatoires." },
@@ -60,18 +72,13 @@ export async function POST(request: Request) {
 
     let fileUrl = "";
 
-    // Détection de l'environnement : Production (Vercel) vs Local
     if (process.env.NODE_ENV === "production") {
-      // Stockage sur Vercel Blob en ligne
       const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-      
       const blob = await put(`memoires/${safeFileName}`, file, {
-        access: "public", // <-- REMETTRE "public" ICI
+        access: "public",
       });
-      
-      fileUrl = blob.url; // Génère une URL publique HTTPS accessible directement
+      fileUrl = blob.url;
     } else {
-      // Stockage local (Sur la machine dev)
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
@@ -87,9 +94,10 @@ export async function POST(request: Request) {
 
     const memoireId = crypto.randomUUID();
 
-    // Insertion des données + l'URL du fichier dans Turso via Drizzle
+    // Insertion avec userId lié
     await db.insert(memoires).values({
       id: memoireId,
+      userId: userId, // <-- LIEN DE L'UTILISATEUR CONNECTÉ
       title,
       abstract: abstract || null,
       year: year || null,

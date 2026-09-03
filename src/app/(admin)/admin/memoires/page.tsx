@@ -22,6 +22,11 @@ interface Memoire {
   fileSize: number;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  // À AJOUTER :
+  quitusNumber?: string | null;
+  defenseDate?: string | null;
+  mention?: string | null;
+  approvedAt?: string | null;
 }
 
 export default function AdminMemoiresPage() {
@@ -30,6 +35,7 @@ export default function AdminMemoiresPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedMemoire, setSelectedMemoire] = useState<Memoire | null>(null);
+
 
   // Récupération des mémoires
   useEffect(() => {
@@ -119,6 +125,47 @@ export default function AdminMemoiresPage() {
     });
   };
 
+
+
+
+// États pour la modale
+const [approvingMemoire, setApprovingMemoire] = useState<Memoire | null>(null);
+const [mentionInput, setMentionInput] = useState<string>("Très Bien");
+const [isSubmittingApprove, setIsSubmittingApprove] = useState<boolean>(false);
+
+const handleConfirmApprove = async () => {
+  if (!approvingMemoire) return;
+
+  try {
+    setIsSubmittingApprove(true);
+    const res = await fetch("/api/admin/memoires/approve", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: approvingMemoire.id,
+        mention: mentionInput,
+        action: "approve",
+      }),
+    });
+
+    if (res.ok) {
+      setApprovingMemoire(null);
+      fetchMemoires();
+    } else {
+      const err = await res.json();
+      alert(err.message || "Erreur lors de la validation.");
+    }
+  } catch (error) {
+    console.error("Erreur validation:", error);
+    alert("Une erreur réseau est survenue.");
+  } finally {
+    setIsSubmittingApprove(false);
+  }
+};
+
+
+
+
   return (
     <div className="admin-memoires-container">
       <div className="admin-page-header">
@@ -191,36 +238,87 @@ export default function AdminMemoiresPage() {
                     </a>
                   </td>
                   <td>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        className="btn-action view-btn"
-                        onClick={() => setSelectedMemoire(item)}
-                        title="Voir les détails"
-                      >
-                        <i className="fa-solid fa-eye"></i> Détails
-                      </button>
-                      <button
-                        className="btn-action delete-btn"
-                        style={{
-                          backgroundColor: "#dc2626",
-                          color: "#fff",
-                          border: "none",
-                          padding: "6px 12px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => handleDelete(item.id, item.title)}
-                        disabled={deletingId === item.id}
-                        title="Supprimer"
-                      >
-                        {deletingId === item.id ? (
-                          <i className="fa-solid fa-spinner fa-spin"></i>
-                        ) : (
-                          <i className="fa-solid fa-trash"></i>
-                        )}
-                      </button>
-                    </div>
-                  </td>
+  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <button
+      className="btn-action view-btn"
+      onClick={() => setSelectedMemoire(item)}
+      title="Voir les détails"
+    >
+      <i className="fa-solid fa-eye"></i> Détails
+    </button>
+
+    {item.status === "pending" ? (
+      <button
+        className="btn-action approve-btn"
+        style={{
+          backgroundColor: "#16a34a",
+          color: "#fff",
+          border: "none",
+          padding: "6px 12px",
+          borderRadius: "4px",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+        }}
+        onClick={() => {
+          setMentionInput("Très Bien");
+          setApprovingMemoire(item);
+        }}
+        title="Valider et générer le quitus"
+      >
+        <i className="fa-solid fa-file-signature"></i> Valider Quitus
+      </button>
+    ) : item.status === "approved" ? (
+      <span
+        style={{
+          backgroundColor: "#dcfce7",
+          color: "#15803d",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "0.8rem",
+          fontWeight: "bold",
+        }}
+      >
+        {item.quitusNumber || "Validé"}
+      </span>
+    ) : (
+      <span
+        style={{
+          backgroundColor: "#fee2e2",
+          color: "#b91c1c",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "0.8rem",
+          fontWeight: "bold",
+        }}
+      >
+        Rejeté
+      </span>
+    )}
+
+    <button
+      className="btn-action delete-btn"
+      style={{
+        backgroundColor: "#dc2626",
+        color: "#fff",
+        border: "none",
+        padding: "6px 12px",
+        borderRadius: "4px",
+        cursor: "pointer",
+      }}
+      onClick={() => handleDelete(item.id, item.title)}
+      disabled={deletingId === item.id}
+      title="Supprimer"
+    >
+      {deletingId === item.id ? (
+        <i className="fa-solid fa-spinner fa-spin"></i>
+      ) : (
+        <i className="fa-solid fa-trash"></i>
+      )}
+    </button>
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
@@ -393,6 +491,102 @@ export default function AdminMemoiresPage() {
           </div>
         </div>
       )}
+
+   {/* MODALE DE VALIDATION DU QUITUS */}
+{approvingMemoire && (
+  <div
+    className="modal-overlay"
+    onClick={() => setApprovingMemoire(null)}
+  >
+    <div
+      className="modal-card"
+      style={{ maxWidth: "450px" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="modal-header">
+        <h2>Validation du Quitus</h2>
+        <button
+          className="btn-close"
+          onClick={() => setApprovingMemoire(null)}
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+        <p style={{ margin: 0, fontSize: "14px", color: "#475569" }}>
+          Vous êtes sur le point d'approuver le mémoire de <strong>{approvingMemoire.fullName}</strong>.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontWeight: "600", fontSize: "13px" }}>Mention attribuée :</label>
+          <select
+            value={mentionInput}
+            onChange={(e) => setMentionInput(e.target.value)}
+            style={{
+              padding: "10px 12px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              fontSize: "14px",
+            }}
+          >
+            <option value="Passable">Passable</option>
+            <option value="Assez Bien">Assez Bien</option>
+            <option value="Bien">Bien</option>
+            <option value="Très Bien">Très Bien</option>
+            <option value="Excellent">Excellent</option>
+          </select>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "10px",
+            marginTop: "10px",
+          }}
+        >
+          <button
+            onClick={() => setApprovingMemoire(null)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#f8fafc",
+              cursor: "pointer",
+            }}
+          >
+            Annuler
+          </button>
+
+          <button
+            onClick={handleConfirmApprove}
+            disabled={isSubmittingApprove}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "6px",
+              border: "none",
+              backgroundColor: "#16a34a",
+              color: "#fff",
+              fontWeight: "600",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            {isSubmittingApprove ? (
+              <i className="fa-solid fa-spinner fa-spin"></i>
+            ) : (
+              <i className="fa-solid fa-check"></i>
+            )}
+            Confirmer et Générer Quitus
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import QuitusSection, { UserQuitus } from "./QuitusPrint";
 
 interface UserProfile {
   id: string;
@@ -26,7 +27,6 @@ interface UserVisit {
 export default function ProfilPage() {
   const router = useRouter();
 
-  // Dictionnaire des filières par établissement
   const filieresData: Record<string, string[]> = {
     ENA: ["AG (Administration Générale)", "AF (Administration des Finances)", "STID (Sciences et Techniques de l'Information et de la Documentation)", "SG (Secrétariat de Gestion)"],
     FASEG: ["Comptabilité", "Économie", "Gestion des Entreprises", "Finance", "Audit et Contrôle de Gestion", "Marketing", "Gestion des Ressources Humaines"],
@@ -59,26 +59,30 @@ export default function ProfilPage() {
     recherche: "Recherche documentaire",
   };
 
-  // États des données utilisateur et historique
   const [user, setUser] = useState<UserProfile | null>(null);
   const [historyList, setHistoryList] = useState<UserVisit[]>([]);
   const [selectedEcole, setSelectedEcole] = useState("");
   const [selectedFiliere, setSelectedFiliere] = useState("");
   const [phone, setPhone] = useState("");
 
-  // États de l'interface
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Charger les données du profil et de l'historique
+  const [quitusList, setQuitusList] = useState<UserQuitus[]>([]);
+
   useEffect(() => {
     const loadProfilAndHistory = async () => {
       try {
-        // 1. Charger le profil
         const responseProfil = await fetch("/api/auth/me");
         if (!responseProfil.ok) throw new Error("Impossible de récupérer les données du profil.");
+
+        const responseQuitus = await fetch("/api/memoires/quitus");
+        if (responseQuitus.ok) {
+          const dataQuitus: UserQuitus[] = await responseQuitus.json();
+          setQuitusList(dataQuitus);
+        }
 
         const dataProfil = await responseProfil.json();
         setUser({
@@ -95,19 +99,15 @@ export default function ProfilPage() {
         setSelectedEcole(dataProfil.school || "");
         setSelectedFiliere(dataProfil.filiere || "");
 
-        // 2. Charger l'historique des visites
         const responseHistory = await fetch("/api/visits/history");
         if (responseHistory.ok) {
           const dataHistory: UserVisit[] = await responseHistory.json();
-
-          // TRI : Classement du plus récent au plus ancien
           const sortedHistory = dataHistory.sort((a, b) => {
             if (a.date !== b.date) {
               return b.date.localeCompare(a.date);
             }
             return b.arrivalAt.localeCompare(a.arrivalAt);
           });
-
           setHistoryList(sortedHistory);
         }
       } catch (err: unknown) {
@@ -177,7 +177,6 @@ export default function ProfilPage() {
     }
   };
 
-  // Formater la date YYYY-MM-DD vers DD/MM/YYYY
   const formatDate = (isoDate: string) => {
     if (!isoDate) return "—";
     const [year, month, day] = isoDate.split("-");
@@ -281,6 +280,9 @@ export default function ProfilPage() {
           </button>
         </form>
       </div>
+
+      {/* COMPOSANT QUITUS DÉCOUPLÉ */}
+      <QuitusSection quitusList={quitusList} />
 
       {/* TABLEAU HISTORIQUE */}
       <div className="history-card">

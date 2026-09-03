@@ -1,15 +1,14 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   fullName: text("full_name").notNull(),
   sex: text("sex", { enum: ["M", "F"] }).notNull(),
   userType: text("user_type", { enum: ["etudiant", "professionnel"] }).default("etudiant").notNull(),
   phone: text("phone"),
-  school: text("school"), // Devient optionnel pour les professionnels
-  filiere: text("filiere"), // Devient optionnel pour les professionnels
+  school: text("school"),
+  filiere: text("filiere"),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   role: text("role", { enum: ["admin", "student", "visitor"] }).default("student").notNull(),
@@ -18,25 +17,23 @@ export const users = sqliteTable("users", {
 });
 
 export const visits = sqliteTable("visits", {
-  id: text("id").primaryKey(), // ID unique (UUID ou nanoid)
+  id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
-  ticketNumber: text("ticket_number").notNull(), // Stockera "#N°001", "#N°002", etc.
+  ticketNumber: text("ticket_number").notNull(),
   motif: text("motif").notNull(),
-  arrivalAt: text("arrival_at").notNull(), // ISO String ou HH:MM
-  departureAt: text("departure_at"), // Nullable jusqu'à ce qu'il clique sur Sortie
-  date: text("date").notNull(), // Format YYYY-MM-DD pour faciliter les stats globales
+  arrivalAt: text("arrival_at").notNull(),
+  departureAt: text("departure_at"),
+  date: text("date").notNull(),
 });
 
-
-
-/* --- NOUVELLE TABLE : MEMOIRES --- */
 export const memoires = sqliteTable("memoires", {
   id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id), // Lien avec l'étudiant
   title: text("title").notNull(),
   abstract: text("abstract"),
   year: text("year"),
   keywords: text("keywords"),
-  fullName: text("full_name").notNull(), // Champ unifié "Nom et Prénom"
+  fullName: text("full_name").notNull(),
   matricule: text("matricule"),
   filiere: text("filiere"),
   academicYear: text("academic_year"),
@@ -44,12 +41,18 @@ export const memoires = sqliteTable("memoires", {
   internshipLocation: text("internship_location"),
   email: text("email"),
   phone: text("phone"),
-  submissionDate: text("submission_date").default(sql`CURRENT_TIMESTAMP`).notNull(), // Générée automatiquement
-  fileUrl: text("file_url").notNull(), // URL ou chemin du fichier PDF
+  submissionDate: text("submission_date").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  fileUrl: text("file_url").notNull(),
   fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
+  
+  // Champs spécifiques au Quitus
+  quitusNumber: text("quitus_number").unique(), // Ex: QSDA-2026-003
+  defenseDate: text("defense_date"), // Date de soutenance
+  mention: text("mention"), // Ex: Assez bien, Très bien
+  approvedAt: text("approved_at"), // Date à laquelle l'admin valide
+  
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
-
