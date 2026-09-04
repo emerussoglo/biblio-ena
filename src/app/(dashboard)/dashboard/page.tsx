@@ -49,7 +49,7 @@ export default function DashboardHome() {
     recherche: "Recherche documentaire",
   };
 
- const checkWorkingHours = () => {
+  const checkWorkingHours = () => {
     const now = new Date();
     const beninTime = new Date(
       now.toLocaleString("en-US", { timeZone: "Africa/Porto-Novo" })
@@ -58,8 +58,8 @@ export default function DashboardHome() {
     const minutes = beninTime.getMinutes();
     const totalMinutes = hours * 60 + minutes;
 
-    // Mode Test : de 00h00 (0 min) à 23h00 (1380 min)
-    return totalMinutes >= 0 && totalMinutes <= 1380;
+    // Plage : 09:00 (540 min) à 18:30 (1110 min)
+    return totalMinutes >= 540 && totalMinutes <= 1110;
   };
 
   useEffect(() => {

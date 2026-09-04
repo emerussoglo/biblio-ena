@@ -30,17 +30,18 @@ function getBeninDateTime() {
   });
   const dateString = formatter.format(now);
 
- // Conversion en minutes depuis minuit (Mode Test : 00h00 à 23h00)
+  // Conversion en minutes depuis minuit pour la restriction horaire (09h00 à 18h30)
   const parts = timeString.split(":");
   const currentMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 
-  const startMinutes = 0 * 60;  // Autoriser dès 00h00
-  const endMinutes = 23 * 60;   // Autoriser jusqu'à 23h00
+  const startMinutes = 9 * 60; // 09:00 -> 540 min
+  const endMinutes = 18 * 60 + 30; // 18:30 -> 1110 min
 
   const isWithinWorkingHours =
     currentMinutes >= startMinutes && currentMinutes <= endMinutes;
 
   const isPastClosingTime = currentMinutes > endMinutes;
+
   return { timeString, dateString, isWithinWorkingHours, isPastClosingTime };
 }
 
