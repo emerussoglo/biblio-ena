@@ -1,28 +1,36 @@
-import { UserQuitus } from "@/app/(dashboard)/profil/QuitusPrint";
+export interface UserQuitusData {
+  quitusNumber: string;
+  fullName: string;
+  matricule?: string | null;
+  title: string;
+  filiere?: string | null;
+  academicYear?: string | null;
+  supervisor?: string | null;
+  internshipLocation?: string | null;
+  mention?: string | null;
+  approvedAt?: string | null;
+}
 
-export function generateQuitusHTML(q: UserQuitus): string {
+export function generateQuitusHTML(q: UserQuitusData): string {
   return `
   <!DOCTYPE html>
   <html lang="fr">
   <head>
     <meta charset="UTF-8">
     <style>
-      * {
-        box-sizing: border-box;
-      }
       body {
-        margin: 0;
-        padding: 20px;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         color: #1e293b;
         background: #ffffff;
+        margin: 0;
+        padding: 20px;
       }
       .quitus-container {
+        box-sizing: border-box;
         padding: 30px;
         background: #ffffff;
         border: 8px solid #0f172a;
         border-radius: 4px;
-        position: relative;
       }
       .header {
         text-align: center;
@@ -44,7 +52,6 @@ export function generateQuitusHTML(q: UserQuitus): string {
         text-transform: uppercase;
         color: #0f172a;
         font-weight: 800;
-        letter-spacing: 0.5px;
       }
       .header p {
         margin: 0;
@@ -52,13 +59,12 @@ export function generateQuitusHTML(q: UserQuitus): string {
         color: #2563eb;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
       }
       .title-section {
         text-align: center;
         margin-bottom: 24px;
       }
-      .badge-official {
+      .badge {
         display: inline-block;
         background-color: #f1f5f9;
         color: #475569;
@@ -67,7 +73,6 @@ export function generateQuitusHTML(q: UserQuitus): string {
         padding: 4px 12px;
         border-radius: 20px;
         text-transform: uppercase;
-        letter-spacing: 1px;
         margin-bottom: 8px;
       }
       .main-title {
@@ -76,7 +81,6 @@ export function generateQuitusHTML(q: UserQuitus): string {
         color: #0f172a;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
       }
       .quitus-number {
         display: inline-block;
@@ -86,29 +90,32 @@ export function generateQuitusHTML(q: UserQuitus): string {
         font-size: 14px;
         padding: 4px 16px;
         border-radius: 6px;
-        letter-spacing: 1px;
       }
       .info-table {
         width: 100%;
         border-collapse: collapse;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
         margin-bottom: 20px;
         font-size: 13px;
-        border: 1px solid #e2e8f0;
       }
       .info-table td {
         padding: 9px 14px;
-        vertical-align: middle;
-      }
-      .info-table tr.alt {
-        background: #f8fafc;
-      }
-      .info-table tr {
         border-bottom: 1px solid #e2e8f0;
       }
-      .label-col {
+      .info-table tr:nth-child(even) {
+        background-color: #ffffff;
+      }
+      .info-table tr:nth-child(odd) {
+        background-color: #f8fafc;
+      }
+      .label {
         width: 200px;
         font-weight: 700;
         color: #475569;
+      }
+      .val {
+        color: #0f172a;
       }
       .attestation {
         font-size: 12px;
@@ -130,101 +137,91 @@ export function generateQuitusHTML(q: UserQuitus): string {
         color: #0369a1;
         margin-bottom: 20px;
       }
-      .instructions-title {
-        font-weight: 800;
-        font-size: 11px;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .instructions ul {
-        margin: 0;
-        padding-left: 18px;
-        line-height: 1.5;
-        color: #0369a1;
-        font-weight: 600;
-      }
-      .signature-table {
-        width: 100%;
+      .signature-block {
+        display: flex;
+        justify-content: flex-end;
         margin-bottom: 15px;
       }
-      .footer-table {
-        width: 100%;
+      .signature-box {
+        text-align: center;
+        width: 220px;
+        float: right;
+      }
+      .footer {
+        clear: both;
+        display: flex;
+        justify-content: space-between;
         font-size: 10px;
         border-top: 1px solid #e2e8f0;
         padding-top: 8px;
         color: #64748b;
+        margin-top: 20px;
       }
     </style>
   </head>
   <body>
     <div class="quitus-container">
-      <!-- En-tête Institutionnel -->
       <div class="header">
         <h3>République du Bénin</h3>
-        <h2>École Nationale d'Administration et de Magistrature</h2>
+        <h2>École Nationale d'Administration</h2>
         <p>Service de la Documentation et des Archives — Abomey-Calavi</p>
       </div>
 
-      <!-- Titre Principal + Badge Quitus -->
       <div class="title-section">
-        <span class="badge-official">Document Officiel</span>
+        <span class="badge">Document Officiel</span>
         <h1 class="main-title">Quitus Provisoire de Dépôt Numérique</h1>
         <div class="quitus-number">N° ${q.quitusNumber}</div>
       </div>
 
-      <!-- Grille d'Informations (Tableau HTML natif pour rendu PDF) -->
       <table class="info-table">
-        <tr class="alt">
-          <td class="label-col">Impétrant(e) :</td>
-          <td style="font-weight: 700; color: #0f172a; font-size: 14px;">
+        <tr>
+          <td class="label">Impétrant(e) :</td>
+          <td class="val" style="font-weight: 700; font-size: 14px;">
             ${q.fullName} ${q.matricule ? `(${q.matricule})` : ""}
           </td>
         </tr>
         <tr>
-          <td class="label-col">Titre du mémoire :</td>
-          <td style="color: #0f172a; font-weight: 600; line-height: 1.4;">${q.title}</td>
-        </tr>
-        <tr class="alt">
-          <td class="label-col">Filière / Spécialité :</td>
-          <td style="color: #0f172a;">${q.filiere || "-"}</td>
+          <td class="label">Titre du mémoire :</td>
+          <td class="val" style="font-weight: 600;">${q.title}</td>
         </tr>
         <tr>
-          <td class="label-col">Année académique :</td>
-          <td style="color: #0f172a;">${q.academicYear || "-"}</td>
-        </tr>
-        <tr class="alt">
-          <td class="label-col">Directeur de mémoire :</td>
-          <td style="color: #0f172a;">${q.supervisor || "-"}</td>
+          <td class="label">Filière / Spécialité :</td>
+          <td class="val">${q.filiere || "-"}</td>
         </tr>
         <tr>
-          <td class="label-col">Lieu de stage :</td>
-          <td style="color: #0f172a;">${q.internshipLocation || "-"}</td>
-        </tr>
-        <tr class="alt">
-          <td class="label-col">Mention obtenue :</td>
-          <td style="color: #16a34a; font-weight: 700;">${q.mention || "-"}</td>
+          <td class="label">Année académique :</td>
+          <td class="val">${q.academicYear || "-"}</td>
         </tr>
         <tr>
-          <td class="label-col">Date de validation :</td>
-          <td style="color: #0f172a;">${q.approvedAt || "-"}</td>
+          <td class="label">Directeur de mémoire :</td>
+          <td class="val">${q.supervisor || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Lieu de stage :</td>
+          <td class="val">${q.internshipLocation || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Mention obtenue :</td>
+          <td class="val" style="color: #16a34a; font-weight: 700;">${q.mention || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Date de validation :</td>
+          <td class="val">${q.approvedAt || "-"}</td>
         </tr>
       </table>
 
-      <!-- Attestation Textuelle -->
       <p class="attestation">
         Le présent document atteste officiellement de la conformité du <strong>dépôt numérique</strong> du mémoire de M./Mme <strong>${q.fullName}</strong> auprès du Service de la Documentation et des Archives de l'ENAM.
       </p>
 
-      <!-- Encadré d'Information : Pièces Physiques à Déposer -->
       <div class="instructions">
-        <div class="instructions-title">
+        <div style="font-weight: 800; margin-bottom: 6px; text-transform: uppercase;">
           📌 Instructions pour la délivrance du Quitus DÉFINITIF
         </div>
-        <p style="margin: 0 0 6px 0; line-height: 1.4; color: #0c4a6e;">
+        <p style="margin: 0 0 6px 0;">
           L'étudiant(e) doit se présenter à la bibliothèque muni(e) de ce document imprimé ainsi que des pièces obligatoires suivantes :
         </p>
-        <ul>
+        <ul style="margin: 0; padding-left: 18px; font-weight: 600;">
           <li>Version papier du mémoire signée par le Président du Jury</li>
           <li>Version numérique complète du mémoire enregistrée sur CD</li>
           <li>Quitus de la comptabilité / SIF</li>
@@ -232,32 +229,21 @@ export function generateQuitusHTML(q: UserQuitus): string {
         </ul>
       </div>
 
-      <!-- Bloc Signature -->
-      <table class="signature-table">
-        <tr>
-          <td></td>
-          <td style="text-align: center; width: 220px;">
-            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 40px;">
-              Le Chef du Service
-            </div>
-            <div style="font-size: 12px; font-weight: 800; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
-              Cadnel HOUNSA
-            </div>
-          </td>
-        </tr>
-      </table>
+      <div class="signature-block">
+        <div class="signature-box">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 40px;">
+            Le Chef du Service
+          </div>
+          <div style="font-size: 12px; font-weight: 800; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+            Cadnel HOUNSA
+          </div>
+        </div>
+      </div>
 
-      <!-- Pied de Page / Contact -->
-      <table class="footer-table">
-        <tr>
-          <td style="text-align: left;">
-            <strong>Horaire Guichet :</strong> Lundi à Vendredi (9h00 – 18h30)
-          </td>
-          <td style="text-align: right;">
-            <strong>Contact :</strong> +229 99 90 14 93 | enambeninbibliotheque@gmail.com
-          </td>
-        </tr>
-      </table>
+      <div class="footer">
+        <div><strong>Horaire:</strong> Lundi à Vendredi (9h00 – 18h30)</div>
+        <div><strong>Contact :</strong> +229 99 90 14 93 | enambeninbibliotheque@gmail.com</div>
+      </div>
     </div>
   </body>
   </html>

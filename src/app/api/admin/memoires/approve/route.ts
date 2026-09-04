@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: "Mémoire introuvable." }, { status: 404 });
     }
 
-    // --- CAS DE DEMANDE DE CORRECTION / REJET ---
+    // --- REJET / DEMANDE DE CORRECTION ---
     if (action === "reject") {
       await db
         .update(memoires)
@@ -54,12 +54,12 @@ export async function PUT(request: Request) {
       }
 
       return NextResponse.json(
-        { message: "Notifcation envoyée. L'étudiant doit effectuer les corrections." },
+        { message: "Notification envoyée pour correction." },
         { status: 200 }
       );
     }
 
-    // --- VALIDATION DE LA PRÉSENCE DES PIÈCES PHYSIQUES AU GUICHET ---
+    // --- VERIFICATION PHYSIQUE AU GUICHET ---
     if (action === "verify_physical") {
       await db
         .update(memoires)
@@ -70,12 +70,12 @@ export async function PUT(request: Request) {
         .where(eq(memoires.id, id));
 
       return NextResponse.json(
-        { message: "Dépôt physique validé à la bibliothèque." },
+        { message: "Dépôt physique validé." },
         { status: 200 }
       );
     }
 
-    // --- VALIDATION NUMÉRIQUE & GÉNÉRATION DU QUITUS PROVISOIRE ---
+    // --- APPROBATION NUMÉRIQUE & EXPÉDITION DU PDF VIA E-MAIL ---
     let quitusNumber = memoire.quitusNumber;
 
     if (!quitusNumber) {
@@ -95,6 +95,7 @@ export async function PUT(request: Request) {
     }
 
     const approvedAt = getBeninDate();
+    const finalMention = mention || memoire.mention || "Non spécifiée";
 
     await db
       .update(memoires)
@@ -102,28 +103,40 @@ export async function PUT(request: Request) {
         status: "approved",
         quitusNumber,
         defenseDate: approvedAt,
-        mention: mention || memoire.mention || "Non spécifiée",
-        rejectionReason: null, // Réinitialisation de l'erreur
+        mention: finalMention,
+        rejectionReason: null,
         approvedAt,
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
       .where(eq(memoires.id, id));
 
-    if (memoire.email && memoire.status !== "approved") {
+    if (memoire.email) {
       await sendQuitusApprovalEmail({
         toEmail: memoire.email,
-        studentName: memoire.fullName,
-        memoireTitle: memoire.title,
-        quitusNumber,
+        quitusData: {
+          quitusNumber,
+          fullName: memoire.fullName,
+          matricule: memoire.matricule,
+          title: memoire.title,
+          filiere: memoire.filiere,
+          academicYear: memoire.academicYear,
+          supervisor: memoire.supervisor,
+          internshipLocation: memoire.internshipLocation,
+          mention: finalMention,
+          approvedAt,
+        },
       });
     }
 
     return NextResponse.json(
-      { message: "Validation numérique effectuée et quitus provisoire généré.", quitusNumber },
+      { message: "Mémoire approuvé et PDF envoyé par e-mail.", quitusNumber },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Erreur validation quitus:", error);
-    return NextResponse.json({ message: "Erreur serveur lors de la validation." }, { status: 500 });
+    console.error("Erreur lors de la validation du mémoire :", error);
+    return NextResponse.json(
+      { message: "Erreur serveur lors de la validation." },
+      { status: 500 }
+    );
   }
 }

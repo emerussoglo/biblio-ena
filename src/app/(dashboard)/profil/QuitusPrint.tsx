@@ -165,7 +165,7 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
       <ul style="margin: 0; padding-left: 18px; line-height: 1.5; color: #0369a1; font-weight: 600;">
         <li>Version papier du mémoire signée par le Président du Jury</li>
         <li>Version numérique complète du mémoire enregistrée sur CD</li>
-        <li>Quitus de la comptabilité / SIF</li>
+        <li>Quitus de la comptabilité / CIRF</li>
         <li>Quittances certifiées de paiement des frais d'établissement des actes</li>
       </ul>
     </div>
@@ -185,7 +185,7 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
     <!-- Pied de Page / Contact -->
     <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 10px; border-top: 1px solid #e2e8f0; padding-top: 8px; color: #64748b;">
       <div>
-        <strong>Horaire Guichet :</strong> Lundi à Vendredi (9h00 – 18h30)
+        <strong>Horaire:</strong> Lundi à Vendredi (9h00 – 18h30)
       </div>
       <div>
         <strong>Contact :</strong> +229 99 90 14 93 | enambeninbibliotheque@gmail.com
