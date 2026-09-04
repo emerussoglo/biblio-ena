@@ -1,3 +1,4 @@
+// db/schema.ts
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
@@ -5,7 +6,9 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   fullName: text("full_name").notNull(),
   sex: text("sex", { enum: ["M", "F"] }).notNull(),
-  userType: text("user_type", { enum: ["etudiant", "professionnel"] }).default("etudiant").notNull(),
+  userType: text("user_type", { 
+    enum: ["etudiant_enam", "etudiant_externe", "professionnel", "chercheur"] 
+  }).default("etudiant_enam").notNull(),
   phone: text("phone"),
   school: text("school"),
   filiere: text("filiere"),
@@ -24,6 +27,8 @@ export const visits = sqliteTable("visits", {
   arrivalAt: text("arrival_at").notNull(),
   departureAt: text("departure_at"),
   date: text("date").notNull(),
+  satisfactionRating: integer("satisfaction_rating"),
+  satisfactionReason: text("satisfaction_reason"),
 });
 
 export const memoires = sqliteTable("memoires", {
@@ -45,19 +50,14 @@ export const memoires = sqliteTable("memoires", {
   fileUrl: text("file_url").notNull(),
   fileName: text("file_name").notNull(), 
   fileSize: integer("file_size").notNull(),
-
-  // Quitus Provisoire & Soutenance
   quitusNumber: text("quitus_number").unique(),
   defenseDate: text("defense_date"),
   mention: text("mention"),
   approvedAt: text("approved_at"),
-  rejectionReason: text("rejection_reason"), // Précision des corrections à apporter
-
-  // Statut du contrôle physique à la bibliothèque
+  rejectionReason: text("rejection_reason"),
   physicalDepositStatus: text("physical_deposit_status", { 
     enum: ["pending", "verified"] 
   }).default("pending").notNull(),
-
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

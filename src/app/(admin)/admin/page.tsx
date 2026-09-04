@@ -9,9 +9,12 @@ interface VisitRow {
   arrivalAt: string;
   departureAt: string | null;
   date: string;
+  satisfactionRating: number | null;
+  satisfactionReason: string | null;
   user: {
     fullName: string;
     sex: string;
+    userType: string;
     school: string;
     phone: string | null;
     filiere: string;
@@ -23,21 +26,31 @@ export default function AdminVisitsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Filtres
+  const [filterUserType, setFilterUserType] = useState("all");
+  const [filterMotif, setFilterMotif] = useState("all");
+
   const motifLabels: Record<string, string> = {
+    etudes: "Études",
+    recherche: "Travaux de recherche",
+    stages: "Stages",
+    depot: "Dépôt de mémoires",
     consultation_ouvrages: "Consultation d'ouvrages",
     consultation_revues: "Consultation de revues",
-    internet: "Consultation internet",
-    depot: "Dépôt de mémoires",
-    etudes: "Études",
-    lecture: "Lecture",
-    recherche: "Recherche documentaire",
+    internet: "Consultation Internet",
+  };
+
+  const userTypeLabels: Record<string, string> = {
+    etudiant_enam: "Étudiant ENAM",
+    etudiant_externe: "Étudiant Externe",
+    professionnel: "Professionnel",
+    chercheur: "Enseignant / Chercheur",
   };
 
   const fetchAdminData = async () => {
     try {
       const response = await fetch("/api/admin/visits");
-      if (!response.ok)
-        throw new Error("Impossible de récupérer les enregistrements.");
+      if (!response.ok) throw new Error("Impossible de récupérer les données.");
       const data = await response.json();
       setDataVisits(data);
     } catch (err: any) {
@@ -59,139 +72,153 @@ export default function AdminVisitsPage() {
     return `${day}/${month}/${year}`;
   };
 
-  // --- GENERATION DU RAPPORT PDF COMPLET AVEC html2pdf.js ---
+  // --- FILTRAGE DYNAMIQUE ---
+  const filteredVisits = dataVisits.filter((v) => {
+    const matchType = filterUserType === "all" || v.user.userType === filterUserType;
+    const matchMotif = filterMotif === "all" || v.motif === filterMotif;
+    return matchType && matchMotif;
+  });
+
+  // --- RAPPORT PDF AVEC SATISFACTION & TROIS AXES ---
   const downloadDailyPDF = async (date: string, visitsOfTheDay: VisitRow[]) => {
     if (typeof window === "undefined") return;
     const html2pdf = (await import("html2pdf.js")).default;
 
-    const formattedDate = formatDate(date);
-    const fileName = `rapport-visites-${date}.pdf`;
-
-    // Aggregations des données par Établissement -> Filière
-    const statsBySchool = visitsOfTheDay.reduce((acc, visit) => {
-      const school = visit.user.school || "Non renseigné";
-      const filiere = visit.user.filiere || "Non renseignée";
-      const sex = visit.user.sex === "F" ? "F" : "M";
-
-      if (!acc[school]) acc[school] = {};
-      if (!acc[school][filiere]) acc[school][filiere] = { M: 0, F: 0 };
-
-      acc[school][filiere][sex]++;
+    // 1. Stats par catégorie usager + genre
+    const statsByUserType = visitsOfTheDay.reduce((acc, v) => {
+      const type = userTypeLabels[v.user.userType] || v.user.userType || "Autre";
+      const sex = v.user.sex === "F" ? "F" : "M";
+      if (!acc[type]) acc[type] = { M: 0, F: 0 };
+      acc[type][sex]++;
       return acc;
-    }, {} as Record<string, Record<string, { M: number; F: number }>>);
+    }, {} as Record<string, { M: number; F: number }>);
 
-    // Aggregations par motif
-    const statsByMotif = visitsOfTheDay.reduce((acc, visit) => {
-      const label = motifLabels[visit.motif] || visit.motif;
+    // 2. Stats par motif
+    const statsByMotif = visitsOfTheDay.reduce((acc, v) => {
+      const label = motifLabels[v.motif] || v.motif;
       acc[label] = (acc[label] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    // Construction HTML du rapport
+    // 3. Stats satisfaction
+    const ratedVisits = visitsOfTheDay.filter((v) => v.satisfactionRating !== null);
+    const avgRating = ratedVisits.length
+      ? (
+          ratedVisits.reduce((acc, v) => acc + (v.satisfactionRating || 0), 0) /
+          ratedVisits.length
+        ).toFixed(1)
+      : "N/A";
+
+    const negativeReviews = visitsOfTheDay.filter(
+      (v) => v.satisfactionRating && v.satisfactionRating <= 2
+    );
+
     const reportContainer = document.createElement("div");
     reportContainer.style.padding = "20px";
-    reportContainer.style.fontFamily = "'Segoe UI', Tahoma, Geneva, sans-serif";
+    reportContainer.style.fontFamily = "'Segoe UI', Tahoma, sans-serif";
     reportContainer.style.color = "#1e293b";
-    reportContainer.style.width = "750px";
-
-    let tablesHtml = "";
-    Object.keys(statsBySchool).forEach((school) => {
-      let schoolTotalM = 0;
-      let schoolTotalF = 0;
-
-      const rows = Object.keys(statsBySchool[school])
-        .map((filiere) => {
-          const s = statsBySchool[school][filiere];
-          schoolTotalM += s.M;
-          schoolTotalF += s.F;
-          const totalFiliere = s.M + s.F;
-
-          return `
-          <tr>
-            <td style="border: 1px solid #cbd5e1; padding: 8px;">${filiere}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; color: #0284c7;">${s.M}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; color: #ec4899;">${s.F}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; background-color: #f8fafc;">${totalFiliere}</td>
-          </tr>
-        `;
-        })
-        .join("");
-
-      tablesHtml += `
-        <div style="margin-bottom: 20px;">
-          <h3 style="background-color: #0369a1; color: white; padding: 8px 12px; margin: 0 0 8px 0; border-radius: 4px; font-size: 14px;">
-            Établissement : ${school}
-          </h3>
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-              <tr style="background-color: #f1f5f9;">
-                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Filière / Option</th>
-                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; width: 90px;">Hommes (M)</th>
-                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; width: 90px;">Femmes (F)</th>
-                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; width: 90px;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-              <tr style="background-color: #e2e8f0; font-weight: bold;">
-                <td style="border: 1px solid #cbd5e1; padding: 8px;">Sous-total (${school})</td>
-                <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; color: #0284c7;">${schoolTotalM}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; color: #ec4899;">${schoolTotalF}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${
-                  schoolTotalM + schoolTotalF
-                }</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    });
 
     reportContainer.innerHTML = `
       <div style="text-align: center; border-bottom: 2px solid #0369a1; padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="margin: 0; font-size: 18px; color: #0f172a; text-transform: uppercase;">
-          Rapport Statistique Global des Visites
+          Rapport de Fréquentation & Satisfaction
         </h2>
         <p style="margin: 4px 0 0 0; color: #0284c7; font-size: 13px; font-weight: bold;">
-          Journée du ${formattedDate}
+          Journée du ${formatDate(date)}
         </p>
       </div>
 
-      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 13px;">
-        <div><strong>Total des entrées :</strong> ${visitsOfTheDay.length} usager(s)</div>
-        <div><strong>Date d'extraction :</strong> ${new Date().toLocaleDateString("fr-FR")}</div>
+      <!-- Synthèse -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 12px;">
+        <div><strong>Total Usagers :</strong> ${visitsOfTheDay.length}</div>
+        <div><strong>Note Moyenne Accueil :</strong> ${avgRating} / 5</div>
+        <div><strong>Avis exprimés :</strong> ${ratedVisits.length}</div>
       </div>
 
-      ${tablesHtml}
+      <!-- Axe 1: Catégories usagers -->
+      <h4 style="margin: 10px 0 6px 0; font-size: 13px; color: #0369a1;">1. Répartition par Catégorie et Genre</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px;">
+        <thead>
+          <tr style="background-color: #f1f5f9;">
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Catégorie d'usager</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 80px;">Hommes</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 80px;">Femmes</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 80px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.keys(statsByUserType)
+            .map((type) => {
+              const row = statsByUserType[type];
+              return `
+              <tr>
+                <td style="border: 1px solid #cbd5e1; padding: 6px;">${type}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: #0284c7; font-weight: bold;">${row.M}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: #ec4899; font-weight: bold;">${row.F}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">${row.M + row.F}</td>
+              </tr>
+            `;
+            })
+            .join("")}
+        </tbody>
+      </table>
 
-      <div style="margin-top: 20px;">
-        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #334155;">Répartition par motifs de visite :</h4>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <!-- Axe 2: Motifs -->
+      <h4 style="margin: 10px 0 6px 0; font-size: 13px; color: #0369a1;">2. Répartition par Motif de Visite</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px;">
+        <thead>
+          <tr style="background-color: #f1f5f9;">
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Motif</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 100px;">Nombre</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.keys(statsByMotif)
+            .map(
+              (m) => `
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px;">${m}</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">${statsByMotif[m]}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+
+      <!-- Axe 3: Satisfaction / Points d'amélioration -->
+      <h4 style="margin: 10px 0 6px 0; font-size: 13px; color: #0369a1;">3. Retours d'Insatisfaction & Remarques</h4>
+      ${
+        negativeReviews.length === 0
+          ? `<p style="font-size: 11px; color: #16a34a; font-style: italic;">Aucune insatisfaction enregistrée pour cette journée.</p>`
+          : `
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
           <thead>
-            <tr style="background-color: #f1f5f9;">
-              <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Motif</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 100px;">Nombre</th>
+            <tr style="background-color: #fef2f2; color: #991b1b;">
+              <th style="border: 1px solid #fecaca; padding: 6px; text-align: left;">Note</th>
+              <th style="border: 1px solid #fecaca; padding: 6px; text-align: left;">Motif d'insatisfaction / Remarque</th>
             </tr>
           </thead>
           <tbody>
-            ${Object.keys(statsByMotif)
+            ${negativeReviews
               .map(
-                (m) => `
+                (r) => `
               <tr>
-                <td style="border: 1px solid #cbd5e1; padding: 6px;">${m}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">${statsByMotif[m]}</td>
+                <td style="border: 1px solid #fecaca; padding: 6px; font-weight: bold; color: #dc2626;">${r.satisfactionRating} / 5</td>
+                <td style="border: 1px solid #fecaca; padding: 6px;">${r.satisfactionReason || "Aucun motif précisé"}</td>
               </tr>
             `
               )
               .join("")}
           </tbody>
         </table>
-      </div>
+      `
+      }
     `;
 
     const opt: any = {
       margin: 10,
-      filename: fileName,
+      filename: `rapport-frequentation-${date}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -200,14 +227,8 @@ export default function AdminVisitsPage() {
     await html2pdf().set(opt).from(reportContainer).save();
   };
 
-  // --- METRIQUES VISITES UNIQUEMENT ---
-  const todayIso = new Date().toISOString().split("T")[0];
-  const totalVisitsCount = dataVisits.length;
-  const todayVisits = dataVisits.filter((v) => v.date === todayIso);
-  const currentlyInRoom = dataVisits.filter((v) => v.date === todayIso && !v.departureAt).length;
-
-  // Groupement par jour
-  const visitsByDay = dataVisits.reduce((groups: Record<string, VisitRow[]>, visit) => {
+  // Groupement par jour sur les données filtrées
+  const visitsByDay = filteredVisits.reduce((groups: Record<string, VisitRow[]>, visit) => {
     const date = visit.date;
     if (!groups[date]) groups[date] = [];
     groups[date].push(visit);
@@ -218,7 +239,7 @@ export default function AdminVisitsPage() {
     return (
       <div style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>
         <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-        <p style={{ marginTop: "10px" }}>Chargement du registre des visites...</p>
+        <p style={{ marginTop: "10px" }}>Chargement du module de statistiques...</p>
       </div>
     );
   }
@@ -231,36 +252,40 @@ export default function AdminVisitsPage() {
         </div>
       )}
 
-      {/* STATISTIQUES CONCENTRÉES UNIQUEMENT SUR LES VISITES */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "15px", marginBottom: "25px" }}>
-        <div style={cardStyle}>
-          <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>TOTAL ENREGISTREMENTS</span>
-          <p style={{ fontSize: "24px", fontWeight: "bold", margin: "4px 0 0 0", color: "#0f172a" }}>{totalVisitsCount}</p>
-        </div>
-        <div style={cardStyle}>
-          <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>ENTRÉES AUJOURD'HUI</span>
-          <p style={{ fontSize: "24px", fontWeight: "bold", margin: "4px 0 0 0", color: "#2563eb" }}>{todayVisits.length}</p>
-        </div>
-        <div style={cardStyle}>
-          <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>ACTUELLEMENT EN SALLE</span>
-          <p style={{ fontSize: "24px", fontWeight: "bold", margin: "4px 0 0 0", color: "#16a34a" }}>{currentlyInRoom}</p>
-        </div>
-      </div>
+      {/* FILTRES PAR AXES */}
+      <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", gap: "15px", flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontWeight: "700", fontSize: "13px", color: "#334155" }}>Filtrer par :</span>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-        <h3 style={{ margin: 0, fontSize: "18px", color: "#0f172a" }}>Registre Journalier des Visites</h3>
-        <button
-          onClick={fetchAdminData}
-          style={{ padding: "8px 14px", backgroundColor: "#0f172a", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}
+        <select
+          value={filterUserType}
+          onChange={(e) => setFilterUserType(e.target.value)}
+          style={selectStyle}
         >
-          <i className="fa-solid fa-rotate"></i> Actualiser
-        </button>
+          <option value="all">Toutes les catégories d'usagers</option>
+          <option value="etudiant_enam">Étudiants ENAM</option>
+          <option value="etudiant_externe">Étudiants Externes</option>
+          <option value="professionnel">Professionnels</option>
+          <option value="chercheur">Enseignants / Chercheurs</option>
+        </select>
+
+        <select
+          value={filterMotif}
+          onChange={(e) => setFilterMotif(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="all">Tous les motifs</option>
+          <option value="etudes">Études</option>
+          <option value="recherche">Travaux de recherche</option>
+          <option value="stages">Stages</option>
+          <option value="depot">Dépôt de mémoires</option>
+          <option value="consultation_ouvrages">Consultation d'ouvrages</option>
+        </select>
       </div>
 
-      {/* AFFICHAGE DES REGISTRES PAR JOUR */}
+      {/* REGISTRES JOURNALIERS */}
       {Object.keys(visitsByDay).length === 0 ? (
         <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px", backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-          Aucune visite enregistrée dans la base de données.
+          Aucun enregistrement correspondant aux critères sélectionnés.
         </div>
       ) : (
         Object.keys(visitsByDay).map((date) => {
@@ -272,13 +297,13 @@ export default function AdminVisitsPage() {
                   <h4 style={{ margin: 0, fontSize: "16px", color: "#0f172a" }}>
                     Journée du {formatDate(date)}
                   </h4>
-                  <span style={{ fontSize: "12px", color: "#64748b" }}>{dayVisits.length} usager(s) au total</span>
+                  <span style={{ fontSize: "12px", color: "#64748b" }}>{dayVisits.length} usager(s) filtré(s)</span>
                 </div>
                 <button
                   onClick={() => downloadDailyPDF(date, dayVisits)}
                   style={{ padding: "8px 14px", backgroundColor: "#dc2626", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "500", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fa-solid fa-file-pdf"></i> Imprimer Rapport PDF
+                  <i className="fa-solid fa-file-pdf"></i> Imprimer Rapport
                 </button>
               </div>
 
@@ -288,12 +313,11 @@ export default function AdminVisitsPage() {
                     <tr style={{ backgroundColor: "#f8fafc", textAlign: "left" }}>
                       <th style={thStyle}>Ticket</th>
                       <th style={thStyle}>Usager</th>
+                      <th style={thStyle}>Catégorie</th>
                       <th style={thStyle}>Sexe</th>
-                      <th style={thStyle}>Établissement / Filière</th>
-                      <th style={thStyle}>Téléphone</th>
                       <th style={thStyle}>Motif</th>
-                      <th style={thStyle}>Arrivée</th>
-                      <th style={thStyle}>Sortie</th>
+                      <th style={thStyle}>Arrivée / Sortie</th>
+                      <th style={thStyle}>Satisfaction</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -301,23 +325,35 @@ export default function AdminVisitsPage() {
                       <tr key={visite.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                         <td style={{ ...tdStyle, fontWeight: "bold", color: "#0284c7" }}>{visite.ticketNumber}</td>
                         <td style={{ ...tdStyle, fontWeight: "600" }}>{visite.user.fullName}</td>
-                        <td style={tdStyle}>{visite.user.sex}</td>
                         <td style={tdStyle}>
-                          <span style={{ fontSize: "11px", backgroundColor: "#e2e8f0", padding: "2px 6px", borderRadius: "4px", marginRight: "6px", fontWeight: "500" }}>
-                            {visite.user.school}
+                          <span style={{ fontSize: "11px", backgroundColor: "#f1f5f9", padding: "2px 6px", borderRadius: "4px", fontWeight: "600" }}>
+                            {userTypeLabels[visite.user.userType] || visite.user.userType}
                           </span>
-                          {visite.user.filiere}
                         </td>
-                        <td style={tdStyle}>{visite.user.phone || "—"}</td>
+                        <td style={tdStyle}>{visite.user.sex}</td>
                         <td style={{ ...tdStyle, fontStyle: "italic" }}>{motifLabels[visite.motif] || visite.motif}</td>
-                        <td style={{ ...tdStyle, color: "#16a34a", fontWeight: "600" }}>{visite.arrivalAt}</td>
                         <td style={tdStyle}>
+                          <span style={{ color: "#16a34a", fontWeight: "600" }}>{visite.arrivalAt}</span> -{" "}
                           {visite.departureAt ? (
                             <span style={{ color: "#dc2626", fontWeight: "600" }}>{visite.departureAt}</span>
                           ) : (
-                            <span style={{ color: "#d97706", backgroundColor: "#fef3c7", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: "600" }}>
-                              En salle
-                            </span>
+                            <span style={{ color: "#d97706", backgroundColor: "#fef3c7", padding: "2px 6px", borderRadius: "10px", fontSize: "11px" }}>En salle</span>
+                          )}
+                        </td>
+                        <td style={tdStyle}>
+                          {visite.satisfactionRating ? (
+                            <div>
+                              <span style={{ fontWeight: "bold", color: visite.satisfactionRating <= 2 ? "#dc2626" : "#16a34a" }}>
+                                {visite.satisfactionRating}/5 ⭐
+                              </span>
+                              {visite.satisfactionReason && (
+                                <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#64748b" }}>
+                                  "{visite.satisfactionReason}"
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ color: "#94a3b8", fontSize: "11px" }}>Non renseigné</span>
                           )}
                         </td>
                       </tr>
@@ -333,11 +369,13 @@ export default function AdminVisitsPage() {
   );
 }
 
-const cardStyle: React.CSSProperties = {
-  backgroundColor: "#fff",
-  border: "1px solid #e2e8f0",
-  borderRadius: "8px",
-  padding: "16px",
+const selectStyle: React.CSSProperties = {
+  padding: "8px 12px",
+  borderRadius: "6px",
+  border: "1px solid #cbd5e1",
+  fontSize: "13px",
+  color: "#0f172a",
+  outline: "none",
 };
 
 const thStyle: React.CSSProperties = {

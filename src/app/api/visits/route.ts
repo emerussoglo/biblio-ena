@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { visits } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, lt, or } from "drizzle-orm";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback_secret_key_production"
 );
 
-// Helper pour récupérer l'heure et la date exactes au Bénin (WAT / UTC+1)
+// Helper pour récupérer l'heure, la date et la plage horaire au Bénin (WAT / UTC+1)
 function getBeninDateTime() {
   const now = new Date();
 
-  // Heure au format HH:mm au Bénin
+  // Heure locale au Bénin (HH:mm)
   const timeString = now.toLocaleTimeString("fr-FR", {
     timeZone: "Africa/Porto-Novo",
     hour: "2-digit",
@@ -21,7 +21,7 @@ function getBeninDateTime() {
     hour12: false,
   });
 
-  // Date au format YYYY-MM-DD au Bénin
+  // Date locale au Bénin (YYYY-MM-DD)
   const formatter = new Intl.DateTimeFormat("fr-CA", {
     timeZone: "Africa/Porto-Novo",
     year: "numeric",
@@ -30,10 +30,93 @@ function getBeninDateTime() {
   });
   const dateString = formatter.format(now);
 
-  return { timeString, dateString };
+ // Conversion en minutes depuis minuit (Mode Test : 00h00 à 23h00)
+  const parts = timeString.split(":");
+  const currentMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+
+  const startMinutes = 0 * 60;  // Autoriser dès 00h00
+  const endMinutes = 23 * 60;   // Autoriser jusqu'à 23h00
+
+  const isWithinWorkingHours =
+    currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+
+  const isPastClosingTime = currentMinutes > endMinutes;
+  return { timeString, dateString, isWithinWorkingHours, isPastClosingTime };
 }
 
-// 1. ARRIVÉE
+// Fonction de clôture automatique des visites dépassées (après 18h30 ou dates antérieures)
+async function autoCloseExpiredVisits(currentDateString: string, isPastClosingTime: boolean) {
+  try {
+    // 1. Clôture des visites restées ouvertes des jours précédents
+    await db
+      .update(visits)
+      .set({
+        departureAt: "18:30",
+        satisfactionReason: "Clôture automatique (Fin de journée)",
+      })
+      .where(
+        and(
+          isNull(visits.departureAt),
+          lt(visits.date, currentDateString)
+        )
+      );
+
+    // 2. Si l'heure actuelle dépasse 18h30, clôture de toutes les visites encore ouvertes aujourd'hui
+    if (isPastClosingTime) {
+      await db
+        .update(visits)
+        .set({
+          departureAt: "18:30",
+          satisfactionReason: "Clôture automatique (Fermeture de la bibliothèque à 18h30)",
+        })
+        .where(
+          and(
+            eq(visits.date, currentDateString),
+            isNull(visits.departureAt)
+          )
+        );
+    }
+  } catch (error) {
+    console.error("Erreur lors de la clôture automatique :", error);
+  }
+}
+
+// 0. RÉCUPÉRATION DE LA VISITE ACTIVE (GET)
+export async function GET() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sda_session_token")?.value;
+    if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = (payload.id || payload.sub) as string;
+
+    const { dateString, isPastClosingTime } = getBeninDateTime();
+
+    // Auto-clôture à 18h30
+    await autoCloseExpiredVisits(dateString, isPastClosingTime);
+
+    // Recherche de la visite active pour l'utilisateur connecté
+    const activeVisit = await db
+      .select()
+      .from(visits)
+      .where(
+        and(
+          eq(visits.userId, userId),
+          eq(visits.date, dateString),
+          isNull(visits.departureAt)
+        )
+      )
+      .get();
+
+    return NextResponse.json(activeVisit || null, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+// 1. ARRIVÉE (POST : RESTRICTION 09h00 - 18h30)
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
@@ -41,14 +124,25 @@ export async function POST(request: Request) {
     if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    const userId = payload.id as string;
+    const userId = (payload.id || payload.sub) as string;
+
+    const { timeString, dateString, isWithinWorkingHours, isPastClosingTime } = getBeninDateTime();
+
+    // Auto-clôture des visites expirées au préalable
+    await autoCloseExpiredVisits(dateString, isPastClosingTime);
+
+    // Contrôle de la plage horaire d'ouverture
+    if (!isWithinWorkingHours) {
+      return NextResponse.json(
+        { message: "Les enregistrements sont autorisés uniquement entre 09h00 et 18h30." },
+        { status: 403 }
+      );
+    }
 
     const { motif } = await request.json();
     if (!motif) return NextResponse.json({ message: "Motif manquant" }, { status: 400 });
 
-    const { timeString, dateString } = getBeninDateTime();
-
-    // Vérification de visite en cours pour aujourd’hui
+    // Vérification s'il y a déjà une visite active
     const activeVisit = await db
       .select()
       .from(visits)
@@ -68,7 +162,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Nombre de visites du jour
+    // Calcul du numéro de ticket du jour
     const todayVisits = await db
       .select()
       .from(visits)
@@ -97,17 +191,23 @@ export async function POST(request: Request) {
   }
 }
 
-// 2. SORTIE
-export async function PUT() {
+// 2. SORTIE ET SATISFACTION (PUT)
+export async function PUT(request: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sda_session_token")?.value;
     if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    const userId = payload.id as string;
+    const userId = (payload.id || payload.sub) as string;
 
-    const { timeString, dateString } = getBeninDateTime();
+    const body = await request.json().catch(() => ({}));
+    const { rating, reason } = body;
+
+    const { timeString, dateString, isPastClosingTime } = getBeninDateTime();
+
+    // Auto-clôture au cas où il est passé 18h30
+    await autoCloseExpiredVisits(dateString, isPastClosingTime);
 
     const activeVisit = await db
       .select()
@@ -123,18 +223,22 @@ export async function PUT() {
 
     if (!activeVisit) {
       return NextResponse.json(
-        { message: "Aucune visite active trouvée pour aujourd'hui." },
+        { message: "Aucune visite active trouvée pour aujourd'hui (ou la visite a été automatiquement clôturée à 18h30)." },
         { status: 404 }
       );
     }
 
     await db
       .update(visits)
-      .set({ departureAt: timeString })
+      .set({
+        departureAt: timeString,
+        satisfactionRating: rating || null,
+        satisfactionReason: reason || null,
+      })
       .where(eq(visits.id, activeVisit.id));
 
     return NextResponse.json(
-      { message: "Sortie enregistrée avec succès !" },
+      { message: "Sortie et avis enregistrés avec succès !" },
       { status: 200 }
     );
   } catch (error) {

@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [userFullName, setUserFullName] = useState("");
 
   const adminMenuItems = [
-    { name: "Admin", path: "/admin", icon: "fa-user-shield" },
+    { name: "Visites", path: "/admin", icon: "fa-user-shield" },
     { name: "Statistiques", path: "/stats", icon: "fa-chart-pie" },
      { name: "Mémoires", path: "/admin/memoires", icon: "fa-book-open" },
   ];
