@@ -10,6 +10,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const PROFILE_URL = "https://biblio-ena.vercel.app/profil";
+
 export async function sendQuitusApprovalEmail({
   toEmail,
   studentName,
@@ -24,18 +26,18 @@ export async function sendQuitusApprovalEmail({
   return await transporter.sendMail({
     from: `"Bibliothèque ENAM" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `Validation de mémoire - Quitus N° ${quitusNumber}`,
+    subject: `Validation numérique & Quitus Provisoire N° ${quitusNumber}`,
     html: `
-      <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+      <div style="font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px;">
         <h2 style="color: #0369a1; text-align: center; border-bottom: 2px solid #0369a1; padding-bottom: 10px;">
           Bibliothèque de l'ENAM
         </h2>
         <p>Bonjour <strong>${studentName}</strong>,</p>
-        <p>Nous vous informons que le dépôt de votre mémoire intitulé :</p>
+        <p>Votre mémoire intitulé :</p>
         <blockquote style="background-color: #f8fafc; border-left: 4px solid #0369a1; margin: 10px 0; padding: 10px; font-style: italic;">
           "${memoireTitle}"
         </blockquote>
-        <p>a été <strong>validé avec succès</strong>.</p>
+        <p>a été <strong>validé sur le plan numérique</strong>.</p>
         
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: center;">
           <span style="color: #166534; font-weight: bold; font-size: 16px;">
@@ -43,8 +45,22 @@ export async function sendQuitusApprovalEmail({
           </span>
         </div>
 
-        <p>Vous pouvez dès à présent vous connecter à votre espace personnel pour télécharger votre Quitus Provisoire au format PDF.</p>
-        
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${PROFILE_URL}" target="_blank" style="background-color: #0284c7; color: #ffffff; padding: 12px 24px; font-weight: bold; text-decoration: none; border-radius: 6px; display: inline-block;">
+            📄 Imprimer mon Quitus depuis mon Profil
+          </a>
+        </div>
+
+        <h3 style="color: #1e293b; margin-top: 20px;">Procédure de dépôt physique à la bibliothèque :</h3>
+        <p>Pour finaliser votre dossier, vous devez vous présenter en personne à la bibliothèque muni(e) des pièces suivantes :</p>
+        <ul style="line-height: 1.6; color: #334155;">
+          <li>Le présent <strong>Quitus Provisoire</strong> imprimé depuis votre espace usager.</li>
+          <li>La <strong>version papier du mémoire</strong>, duly signée par le Président du jury.</li>
+          <li>La <strong>version numérique sur CD</strong>.</li>
+          <li>Le <strong>quitus de comptabilité / quitus du SIF</strong>.</li>
+          <li>Les <strong>quittances certifiées de paiement</strong> des frais d'établissement des actes.</li>
+        </ul>
+
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="font-size: 12px; color: #64748b; text-align: center;">
           Service de la Documentation et des Archives - ENAM Bénin
@@ -68,24 +84,29 @@ export async function sendQuitusRejectionEmail({
   return await transporter.sendMail({
     from: `"Bibliothèque ENAM" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `Information concernant votre dépôt de mémoire`,
+    subject: `Demande de correction - Dépôt de mémoire non conforme`,
     html: `
       <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
         <h2 style="color: #dc2626; text-align: center; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">
           Bibliothèque de l'ENAM
         </h2>
         <p>Bonjour <strong>${studentName}</strong>,</p>
-        <p>Votre dépôt de mémoire concernant le sujet :</p>
+        <p>Votre dépôt numérique de mémoire concernant le sujet :</p>
         <blockquote style="background-color: #f8fafc; border-left: 4px solid #dc2626; margin: 10px 0; padding: 10px; font-style: italic;">
           "${memoireTitle}"
         </blockquote>
-        <p>n'a pas été validé par le service de la documentation.</p>
+        <p>présente des non-conformités et requiert des corrections avant d'être validé.</p>
 
-        ${
-          reason
-            ? `<p><strong>Motif indiqué :</strong> ${reason}</p>`
-            : `<p>Veuillez vérifier les informations saisies et contacter la bibliothèque pour plus d'informations.</p>`
-        }
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin: 15px 0;">
+          <strong style="color: #991b1b;">Points à corriger :</strong>
+          <p style="margin-top: 5px; color: #7f1d1d;">${reason || "Informations incomplètes ou fichier non conforme."}</p>
+        </div>
+
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${PROFILE_URL}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; font-weight: bold; text-decoration: none; border-radius: 6px; display: inline-block;">
+            ✏️ Mettre à jour mon dépôt sur mon Profil
+          </a>
+        </div>
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="font-size: 12px; color: #64748b; text-align: center;">

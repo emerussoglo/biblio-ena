@@ -28,7 +28,7 @@ export const visits = sqliteTable("visits", {
 
 export const memoires = sqliteTable("memoires", {
   id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id), // Lien avec l'étudiant
+  userId: text("user_id").references(() => users.id),
   title: text("title").notNull(),
   abstract: text("abstract"),
   year: text("year"),
@@ -43,15 +43,21 @@ export const memoires = sqliteTable("memoires", {
   phone: text("phone"),
   submissionDate: text("submission_date").default(sql`CURRENT_TIMESTAMP`).notNull(),
   fileUrl: text("file_url").notNull(),
-  fileName: text("file_name").notNull(),
+  fileName: text("file_name").notNull(), 
   fileSize: integer("file_size").notNull(),
-  
-  // Champs spécifiques au Quitus
-  quitusNumber: text("quitus_number").unique(), // Ex: QSDA-2026-003
-  defenseDate: text("defense_date"), // Date de soutenance
-  mention: text("mention"), // Ex: Assez bien, Très bien
-  approvedAt: text("approved_at"), // Date à laquelle l'admin valide
-  
+
+  // Quitus Provisoire & Soutenance
+  quitusNumber: text("quitus_number").unique(),
+  defenseDate: text("defense_date"),
+  mention: text("mention"),
+  approvedAt: text("approved_at"),
+  rejectionReason: text("rejection_reason"), // Précision des corrections à apporter
+
+  // Statut du contrôle physique à la bibliothèque
+  physicalDepositStatus: text("physical_deposit_status", { 
+    enum: ["pending", "verified"] 
+  }).default("pending").notNull(),
+
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

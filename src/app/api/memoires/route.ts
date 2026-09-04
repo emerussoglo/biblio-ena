@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { memoires } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { put } from "@vercel/blob";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -10,24 +11,19 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback_secret_key_production"
 );
-// ==========================================
-// 1. GET : Récupérer tous les mémoires pour l'Admin
-// ==========================================
+
 export async function GET() {
   try {
     const data = await db.select().from(memoires);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error("Erreur lors de la récupération des mémoires :", error);
-    return NextResponse.json(
-      { message: "Impossible de charger les mémoires." },
-      { status: 500 }
-    );
+    console.error("Erreur récupération mémoires :", error);
+    return NextResponse.json({ message: "Impossible de charger les mémoires." }, { status: 500 });
   }
 }
+
 export async function POST(request: Request) {
   try {
-    // 1. Récupérer l'ID de l'utilisateur connecté s'il existe
     let userId: string | null = null;
     try {
       const cookieStore = await cookies();
@@ -37,11 +33,12 @@ export async function POST(request: Request) {
         userId = payload.id as string;
       }
     } catch {
-      // Si pas connecté ou token invalide, userId reste null
+      // Ignoré si anonyme
     }
 
     const formData = await request.formData();
 
+    const memoireIdParam = formData.get("id") as string | null; // Pour les ré-soumissions
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const year = formData.get("year") as string;
@@ -56,48 +53,94 @@ export async function POST(request: Request) {
     const phone = formData.get("phone") as string;
     const file = formData.get("file") as File | null;
 
-    if (!title || !fullName || !file) {
+    if (!title || !fullName) {
       return NextResponse.json(
-        { message: "Le titre, le nom/prénom et le fichier PDF sont obligatoires." },
-        { status: 400 }
-      );
-    }
-
-    if (file.type !== "application/pdf") {
-      return NextResponse.json(
-        { message: "Seuls les fichiers au format PDF sont acceptés." },
+        { message: "Le titre et le nom/prénom sont obligatoires." },
         { status: 400 }
       );
     }
 
     let fileUrl = "";
+    let fileName = "";
+    let fileSize = 0;
 
-    if (process.env.NODE_ENV === "production") {
-      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-      const blob = await put(`memoires/${safeFileName}`, file, {
-        access: "public",
+    // Si un nouveau fichier est transmis
+    if (file && file.size > 0) {
+      if (file.type !== "application/pdf") {
+        return NextResponse.json(
+          { message: "Seuls les fichiers au format PDF sont acceptés." },
+          { status: 400 }
+        );
+      }
+
+      fileName = file.name;
+      fileSize = file.size;
+
+      if (process.env.NODE_ENV === "production") {
+        const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const blob = await put(`memoires/${safeFileName}`, file, { access: "public" });
+        fileUrl = blob.url;
+      } else {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const uploadDir = path.join(process.cwd(), "public/uploads/memoires");
+        await mkdir(uploadDir, { recursive: true });
+        const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const filePath = path.join(uploadDir, safeFileName);
+        await writeFile(filePath, buffer);
+        fileUrl = `/uploads/memoires/${safeFileName}`;
+      }
+    }
+
+    // CAS RÉ-SOUMISSION APRÈS CORRECTION
+    if (memoireIdParam) {
+      const existingMemoire = await db.query.memoires.findFirst({
+        where: eq(memoires.id, memoireIdParam),
       });
-      fileUrl = blob.url;
-    } else {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
 
-      const uploadDir = path.join(process.cwd(), "public/uploads/memoires");
-      await mkdir(uploadDir, { recursive: true });
+      if (existingMemoire) {
+        await db
+          .update(memoires)
+          .set({
+            title,
+            abstract: abstract || null,
+            year: year || null,
+            keywords: keywords || null,
+            fullName,
+            matricule: matricule || null,
+            filiere: filiere || null,
+            academicYear: academicYear || null,
+            supervisor: supervisor || null,
+            internshipLocation: internshipLocation || null,
+            email: email ? email.toLowerCase() : null,
+            phone: phone || null,
+            ...(fileUrl ? { fileUrl, fileName, fileSize } : {}),
+            status: "pending", // Repasse en attente de validation
+            rejectionReason: null,
+            updatedAt: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(eq(memoires.id, memoireIdParam));
 
-      const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-      const filePath = path.join(uploadDir, safeFileName);
-      await writeFile(filePath, buffer);
+        return NextResponse.json(
+          { message: "Memoire corrigé et ressoumis avec succès !" },
+          { status: 200 }
+        );
+      }
+    }
 
-      fileUrl = `/uploads/memoires/${safeFileName}`;
+    // NOUVEAU DÉPÔT
+    if (!file) {
+      return NextResponse.json(
+        { message: "Le fichier PDF du mémoire est obligatoire." },
+        { status: 400 }
+      );
     }
 
     const memoireId = crypto.randomUUID();
 
-    // Insertion avec userId lié
     await db.insert(memoires).values({
       id: memoireId,
-      userId: userId, // <-- LIEN DE L'UTILISATEUR CONNECTÉ
+      userId,
       title,
       abstract: abstract || null,
       year: year || null,
@@ -111,8 +154,10 @@ export async function POST(request: Request) {
       email: email ? email.toLowerCase() : null,
       phone: phone || null,
       fileUrl,
-      fileName: file.name,
-      fileSize: file.size,
+      fileName,
+      fileSize,
+      status: "pending",
+      physicalDepositStatus: "pending",
     });
 
     return NextResponse.json(
@@ -122,7 +167,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Erreur lors du dépôt du mémoire :", error);
     return NextResponse.json(
-      { message: "Une erreur interne est survenue lors du téléversement." },
+      { message: "Une erreur interne est survenue lors de la soumission." },
       { status: 500 }
     );
   }

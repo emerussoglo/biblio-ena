@@ -21,7 +21,7 @@ export async function GET() {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.id as string;
 
-    // Récupérer l'email de l'utilisateur
+    // Récupérer l'email de l'utilisateur connecté
     const currentUser = await db
       .select({ email: users.email })
       .from(users)
@@ -30,12 +30,13 @@ export async function GET() {
 
     const userEmail = currentUser?.email ? currentUser.email.toLowerCase() : "";
 
-    // Récupérer les mémoires approuvés correspondants soit au userId, soit à l'email
+    // Récupérer la liste des mémoires liés au compte (par ID ou Email)
     const userQuitusList = await db
       .select({
         id: memoires.id,
         title: memoires.title,
         fullName: memoires.fullName,
+        matricule: memoires.matricule,
         filiere: memoires.filiere,
         academicYear: memoires.academicYear,
         supervisor: memoires.supervisor,
@@ -44,7 +45,10 @@ export async function GET() {
         defenseDate: memoires.defenseDate,
         mention: memoires.mention,
         approvedAt: memoires.approvedAt,
-        year: memoires.year, // <-- Sélection explicite du champ
+        year: memoires.year,
+        status: memoires.status, // "pending", "approved", "rejected"
+        rejectionReason: memoires.rejectionReason, // Points à corriger si rejeté
+        physicalDepositStatus: memoires.physicalDepositStatus, // "pending", "verified"
       })
       .from(memoires)
       .where(
