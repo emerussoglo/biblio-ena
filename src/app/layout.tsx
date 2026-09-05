@@ -12,7 +12,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Condition spécifique demandée pour masquer la Nav et le Footer
+  // Condition spécifique pour masquer la Nav et le Footer
   const isDashboardArea =
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/profil") ||
@@ -25,7 +25,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
-        {/* Vos liens Google Fonts et FontAwesome restent ici */}
+        {/* Favicon / Icône du site */}
+        <link rel="shortcut icon" href="/img/logo.jpeg" type="image/x-icon" />
+        <link rel="icon" href="/img/logo.jpeg" type="image/jpeg" />
+
+        {/* Liens Google Fonts et FontAwesome */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link 
@@ -36,18 +40,15 @@ export default function RootLayout({
           rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
         />
-        <link rel="shortcut icon" href="img/logo.jpeg" type="image/x-icon" />
       </head>
       <body suppressHydrationWarning>
         <div className="main-layout">
-        
           {!isDashboardArea && <Navbar />}
           
           <main className={isDashboardArea ? "no-padding" : "page-content"}>
             {children}
           </main>
           
-          {/* On n'affiche le Footer que si on n'est PAS dans les zones listées */}
           {!isDashboardArea && <Footer />}
         </div>
       </body>
