@@ -23,7 +23,7 @@ export async function GET() {
       { message: "Une erreur interne est survenue." },
       { status: 500 }
     );
-  } 
+  }
 }
 
 // ==========================================
@@ -57,27 +57,33 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // 2. Supprimer le fichier physique (Vercel Blob ou Local)
+    // 2. Supprimer le fichier (Vercel Blob ou Local) dans un bloc try/catch isolé
     if (memoireToDelete.fileUrl) {
-      if (memoireToDelete.fileUrl.startsWith("http")) {
-        // Supprime le fichier stocké sur Vercel Blob
-        await del(memoireToDelete.fileUrl);
-      } else {
-        // Supprime le fichier stocké en local
-        try {
+      try {
+        if (
+          memoireToDelete.fileUrl.startsWith("http://") ||
+          memoireToDelete.fileUrl.startsWith("https://")
+        ) {
+          // Si le fichier est hébergé sur Vercel Blob
+          await del(memoireToDelete.fileUrl);
+        } else {
+          // Si le fichier est en local dans public/
           const localFilePath = path.join(
             process.cwd(),
             "public",
             memoireToDelete.fileUrl
           );
           await unlink(localFilePath);
-        } catch (err) {
-          console.warn("Fichier local introuvable ou déjà supprimé :", err);
         }
+      } catch (fileErr) {
+        console.warn(
+          "Avertissement : Le fichier n'a pas pu être supprimé du stockage :",
+          fileErr
+        );
       }
     }
 
-    // 3. Supprimer l'enregistrement dans la base Turso
+    // 3. Supprimer l'enregistrement de la base Turso
     await db.delete(memoires).where(eq(memoires.id, id));
 
     return NextResponse.json(
@@ -92,6 +98,3 @@ export async function DELETE(request: Request) {
     );
   }
 }
-
-
-

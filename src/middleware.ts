@@ -15,8 +15,10 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/admin/memoires") ||
     pathname.startsWith("/catalogue") ||
     pathname.startsWith("/profil") ||
+    pathname.startsWith("/memoires") ||
     pathname.startsWith("/stats")
   ) {
     if (!token) {

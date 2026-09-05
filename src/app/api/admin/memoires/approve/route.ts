@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { memoires } from "@/lib/db/schema";
-import { eq, sql, like } from "drizzle-orm";
+import { eq, like, desc } from "drizzle-orm";
 import { sendQuitusApprovalEmail, sendQuitusRejectionEmail } from "@/lib/email";
 
 function getBeninDate() {
@@ -17,40 +17,54 @@ function getBeninDate() {
 
 export async function PUT(request: Request) {
   try {
-    const { id, mention, action, rejectionReason, physicalDepositStatus } = await request.json();
+    const body = await request.json();
+    const { id, mention, action, rejectionReason, physicalDepositStatus } = body;
 
     if (!id) {
       return NextResponse.json({ message: "ID du mémoire manquant." }, { status: 400 });
     }
 
-    const memoire = await db.query.memoires.findFirst({
-      where: eq(memoires.id, id),
-    });
+    // Récupération du mémoire
+    const memoireList = await db
+      .select()
+      .from(memoires)
+      .where(eq(memoires.id, id))
+      .limit(1);
+
+    const memoire = memoireList[0];
 
     if (!memoire) {
       return NextResponse.json({ message: "Mémoire introuvable." }, { status: 404 });
     }
 
-    // --- REJET / DEMANDE DE CORRECTION ---
+    const nowIso = new Date().toISOString();
+
+    // --- 1. ACTION : REJET / DEMANDE DE CORRECTION ---
     if (action === "reject") {
+      const reasonToSave = rejectionReason || "Document non conforme aux normes.";
+
       await db
         .update(memoires)
         .set({
           status: "rejected",
-          rejectionReason: rejectionReason || "Document non conforme aux normes.",
+          rejectionReason: reasonToSave,
           quitusNumber: null,
           approvedAt: null,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: nowIso,
         })
         .where(eq(memoires.id, id));
 
       if (memoire.email) {
-        await sendQuitusRejectionEmail({
-          toEmail: memoire.email,
-          studentName: memoire.fullName,
-          memoireTitle: memoire.title,
-          reason: rejectionReason,
-        });
+        try {
+          await sendQuitusRejectionEmail({
+            toEmail: memoire.email,
+            studentName: memoire.fullName,
+            memoireTitle: memoire.title,
+            reason: reasonToSave,
+          });
+        } catch (emailErr) {
+          console.error("Erreur lors de l'envoi de l'email de rejet :", emailErr);
+        }
       }
 
       return NextResponse.json(
@@ -59,13 +73,13 @@ export async function PUT(request: Request) {
       );
     }
 
-    // --- VERIFICATION PHYSIQUE AU GUICHET ---
+    // --- 2. ACTION : VERIFICATION PHYSIQUE AU GUICHET ---
     if (action === "verify_physical") {
       await db
         .update(memoires)
         .set({
           physicalDepositStatus: physicalDepositStatus || "verified",
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: nowIso,
         })
         .where(eq(memoires.id, id));
 
@@ -75,22 +89,32 @@ export async function PUT(request: Request) {
       );
     }
 
-    // --- APPROBATION NUMÉRIQUE & EXPÉDITION DU PDF VIA E-MAIL ---
+    // --- 3. ACTION : APPROBATION NUMÉRIQUE & GÉNÉRATION QUITUS ---
     let quitusNumber = memoire.quitusNumber;
 
     if (!quitusNumber) {
       const currentYear = new Date().getFullYear();
       const prefix = `QSDA-${currentYear}-`;
 
-      const maxQuitusRes = await db
-        .select({
-          maxSeq: sql<string>`MAX(CAST(SUBSTR(${memoires.quitusNumber}, 11) AS INTEGER))`,
-        })
+      // Recherche sécurisée du dernier numéro de quitus généré pour l'année en cours
+      const existingQuitus = await db
+        .select({ quitusNumber: memoires.quitusNumber })
         .from(memoires)
-        .where(like(memoires.quitusNumber, `${prefix}%`));
+        .where(like(memoires.quitusNumber, `${prefix}%`))
+        .orderBy(desc(memoires.quitusNumber))
+        .limit(1);
 
-      const lastSeq = parseInt(maxQuitusRes[0]?.maxSeq || "0", 10);
-      const nextSeq = lastSeq + 1;
+      let nextSeq = 1;
+
+      if (existingQuitus.length > 0 && existingQuitus[0].quitusNumber) {
+        const lastQuitus = existingQuitus[0].quitusNumber;
+        const parts = lastQuitus.split("-");
+        const lastNum = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(lastNum)) {
+          nextSeq = lastNum + 1;
+        }
+      }
+
       quitusNumber = `${prefix}${String(nextSeq).padStart(3, "0")}`;
     }
 
@@ -106,26 +130,31 @@ export async function PUT(request: Request) {
         mention: finalMention,
         rejectionReason: null,
         approvedAt,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: nowIso,
       })
       .where(eq(memoires.id, id));
 
+    // Tentative d'envoi d'e-mail d'approbation
     if (memoire.email) {
-      await sendQuitusApprovalEmail({
-        toEmail: memoire.email,
-        quitusData: {
-          quitusNumber,
-          fullName: memoire.fullName,
-          matricule: memoire.matricule,
-          title: memoire.title,
-          filiere: memoire.filiere,
-          academicYear: memoire.academicYear,
-          supervisor: memoire.supervisor,
-          internshipLocation: memoire.internshipLocation,
-          mention: finalMention,
-          approvedAt,
-        },
-      });
+      try {
+        await sendQuitusApprovalEmail({
+          toEmail: memoire.email,
+          quitusData: {
+            quitusNumber,
+            fullName: memoire.fullName,
+            matricule: memoire.matricule,
+            title: memoire.title,
+            filiere: memoire.filiere,
+            academicYear: memoire.academicYear,
+            supervisor: memoire.supervisor,
+            internshipLocation: memoire.internshipLocation,
+            mention: finalMention,
+            approvedAt,
+          },
+        });
+      } catch (emailErr) {
+        console.error("Erreur lors de l'envoi du mail de validation :", emailErr);
+      }
     }
 
     return NextResponse.json(
@@ -135,7 +164,7 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error("Erreur lors de la validation du mémoire :", error);
     return NextResponse.json(
-      { message: "Erreur serveur lors de la validation." },
+      { message: "Erreur serveur lors de la validation du mémoire." },
       { status: 500 }
     );
   }

@@ -121,10 +121,7 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
         <span style="width: 200px; font-weight: 700; color: #475569;">Lieu de stage :</span>
         <span style="flex: 1; color: #0f172a;">${q.internshipLocation || "-"}</span>
       </div>
-      <div style="display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
-        <span style="width: 200px; font-weight: 700; color: #475569;">Mention obtenue :</span>
-        <span style="flex: 1; color: #16a34a; font-weight: 700;">${q.mention || "-"}</span>
-      </div>
+     
       <div style="display: flex; background: #ffffff; padding: 9px 14px;">
         <span style="width: 200px; font-weight: 700; color: #475569;">Date de validation :</span>
         <span style="flex: 1; color: #0f172a;">${q.approvedAt || "-"}</span>

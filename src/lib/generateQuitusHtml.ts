@@ -200,10 +200,7 @@ export function generateQuitusHTML(q: UserQuitusData): string {
           <td class="label">Lieu de stage :</td>
           <td class="val">${q.internshipLocation || "-"}</td>
         </tr>
-        <tr>
-          <td class="label">Mention obtenue :</td>
-          <td class="val" style="color: #16a34a; font-weight: 700;">${q.mention || "-"}</td>
-        </tr>
+        
         <tr>
           <td class="label">Date de validation :</td>
           <td class="val">${q.approvedAt || "-"}</td>
