@@ -1,10 +1,13 @@
 import nodemailer from "nodemailer";
-import puppeteer from "puppeteer";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium-min";
+import { execSync } from "child_process";
+import fs from "fs";
 import { generateQuitusHTML, UserQuitusData } from "./generateQuitusHtml";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
+  port: Number(process.env.SMTP_PORT) || 587,
   secure: Number(process.env.SMTP_PORT) === 465,
   auth: {
     user: process.env.SMTP_USER,
@@ -15,28 +18,69 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const PROFILE_URL = "https://biblio-ena.vercel.app/profil";
+/**
+ * Détection automatique de Google Chrome ou Microsoft Edge sur Windows local
+ */
+function getLocalChromePath(): string {
+  const paths = [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  ];
 
+  for (const p of paths) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  throw new Error("Aucun navigateur compatible (Chrome ou Edge) trouvé sur ce PC.");
+}
+
+/**
+ * Génération du PDF isolée et sans conflit de protocole
+ */
 async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
   const htmlContent = generateQuitusHTML(quitusData);
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  const page = await browser.newPage();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let browser: any = null;
 
-  await page.setContent(htmlContent, {
-    waitUntil: "networkidle0" as any,
-  });
+  try {
+    const isVercel = Boolean(process.env.VERCEL) || process.env.NODE_ENV === "production";
 
-  const pdfUint8Array = await page.pdf({
-    format: "A4",
-    margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" },
-    printBackground: true,
-  });
+    let executablePath = "";
 
-  await browser.close();
-  return Buffer.from(pdfUint8Array);
+    if (isVercel) {
+      // Configuration Vercel Serverless
+      executablePath = await chromium.executablePath();
+    } else {
+      // Configuration Développement Windows local
+      executablePath = getLocalChromePath();
+    }
+
+    browser = await puppeteerCore.launch({
+      args: isVercel ? chromium.args : ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath,
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+    const pdfUint8Array = await page.pdf({
+      format: "A4",
+      margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" },
+      printBackground: true,
+    });
+
+    return Buffer.from(pdfUint8Array);
+  } catch (err) {
+    console.error("Erreur lors de la génération du PDF :", err);
+    throw err;
+  } finally {
+    if (browser !== null) {
+      await browser.close();
+    }
+  }
 }
 
 export async function sendQuitusApprovalEmail({
@@ -74,7 +118,6 @@ export async function sendQuitusApprovalEmail({
             </p>
           </div>
 
-         
           <h3 style="color: #1e293b; margin-top: 20px;">Procédure de dépôt physique à la bibliothèque :</h3>
           <p>Pour finaliser votre dossier, vous devez vous présenter en personne à la bibliothèque muni(e) des pièces suivantes :</p>
           <ul style="line-height: 1.6; color: #334155;">
@@ -100,10 +143,10 @@ export async function sendQuitusApprovalEmail({
       ],
     });
 
-    console.log("Email avec PDF joint envoyé :", info.messageId);
+    console.log("Email de validation envoyé avec succès, ID:", info.messageId);
     return info;
   } catch (error) {
-    console.error("Erreur lors de la génération ou envoi du PDF :", error);
+    console.error("Erreur lors de l'envoi de l'email de validation :", error);
     throw error;
   }
 }
@@ -148,6 +191,8 @@ export async function sendQuitusRejectionEmail({
         </div>
       `,
     });
+
+    console.log("Email de rejet envoyé avec succès, ID:", info.messageId);
     return info;
   } catch (error) {
     console.error("Erreur lors de l'envoi de l'email de rejet :", error);
