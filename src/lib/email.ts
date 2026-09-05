@@ -39,6 +39,9 @@ function getLocalChromePath(): string {
 /**
  * Génération du PDF isolée et sans conflit de protocole
  */
+/**
+ * Génération du PDF avec puppeteer-core (Edge/Chrome en local, Chromium Tar en Prod)
+ */
 async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
   const htmlContent = generateQuitusHTML(quitusData);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,8 +53,11 @@ async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
     let executablePath = "";
 
     if (isVercel) {
-      // Configuration Vercel Serverless
-      executablePath = await chromium.executablePath();
+      // Indique explicitement l'URL de téléchargement de l'archive Chromium
+      // Cela évite de chercher le dossier /bin inexistant dans le container Vercel
+      executablePath = await chromium.executablePath(
+        "https://github.com/sparticuz/chromium/releases/download/v126.0.0/chromium-v126.0.0-pack.tar"
+      );
     } else {
       // Configuration Développement Windows local
       executablePath = getLocalChromePath();
