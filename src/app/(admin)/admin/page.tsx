@@ -28,6 +28,17 @@ interface GenderStat {
   F: number;
 }
 
+interface FiliereStat {
+  M: number;
+  F: number;
+}
+
+interface SchoolStat {
+  M: number;
+  F: number;
+  filieres: Record<string, FiliereStat>;
+}
+
 // Module HTML2PDF
 interface Html2PdfOptions {
   margin: number;
@@ -108,20 +119,16 @@ export default function AdminVisitsPage() {
     return matchType && matchMotif;
   });
 
-  // --- GÉNÉRATION DU RAPPORT PDF COMPLET ---
+  // --- GÉNÉRATION DU RAPPORT PDF STRUCTURÉ PAR ÉCOLE ---
   const downloadDailyPDF = async (date: string, visitsOfTheDay: VisitRow[]) => {
     if (typeof window === "undefined") return;
 
     const html2pdfModule = await import("html2pdf.js");
     const html2pdf = html2pdfModule.default as unknown as () => Html2PdfInstance;
 
-    // 1. Stats par Statut / Catégorie d'usager x Genre
+    // Structure : École -> { M, F, filieres: { Filiere -> { M, F } } }
+    const statsBySchool: Record<string, SchoolStat> = {};
     const statsByUserType: Record<string, GenderStat> = {};
-    // 2. Stats par École / Établissement x Genre
-    const statsBySchool: Record<string, GenderStat> = {};
-    // 3. Stats par Filière x Genre
-    const statsByFiliere: Record<string, GenderStat> = {};
-    // 4. Stats par Motif
     const statsByMotif: Record<string, number> = {};
 
     let totalHommes = 0;
@@ -132,27 +139,31 @@ export default function AdminVisitsPage() {
       if (sex === "M") totalHommes++;
       else totalFemmes++;
 
-      // Catégorie
+      // 1. École et Filière imbriquée
+      const schoolName = v.user.school && v.user.school.trim() !== "" ? v.user.school : "Non spécifiée";
+      const filiereName = v.user.filiere && v.user.filiere.trim() !== "" ? v.user.filiere : "Non spécifiée";
+
+      if (!statsBySchool[schoolName]) {
+        statsBySchool[schoolName] = { M: 0, F: 0, filieres: {} };
+      }
+      statsBySchool[schoolName][sex]++;
+
+      if (!statsBySchool[schoolName].filieres[filiereName]) {
+        statsBySchool[schoolName].filieres[filiereName] = { M: 0, F: 0 };
+      }
+      statsBySchool[schoolName].filieres[filiereName][sex]++;
+
+      // 2. Statut / Catégorie
       const typeLabel = userTypeLabels[v.user.userType] || v.user.userType || "Autre";
       if (!statsByUserType[typeLabel]) statsByUserType[typeLabel] = { M: 0, F: 0 };
       statsByUserType[typeLabel][sex]++;
 
-      // École / Établissement
-      const schoolLabel = v.user.school && v.user.school.trim() !== "" ? v.user.school : "Non renseignée";
-      if (!statsBySchool[schoolLabel]) statsBySchool[schoolLabel] = { M: 0, F: 0 };
-      statsBySchool[schoolLabel][sex]++;
-
-      // Filière
-      const filiereLabel = v.user.filiere && v.user.filiere.trim() !== "" ? v.user.filiere : "Non renseignée";
-      if (!statsByFiliere[filiereLabel]) statsByFiliere[filiereLabel] = { M: 0, F: 0 };
-      statsByFiliere[filiereLabel][sex]++;
-
-      // Motif
+      // 3. Motif
       const motifLabel = motifLabels[v.motif] || v.motif;
       statsByMotif[motifLabel] = (statsByMotif[motifLabel] || 0) + 1;
     });
 
-    // 5. Satisfaction
+    // Avis & Satisfaction
     const ratedVisits = visitsOfTheDay.filter((v) => v.satisfactionRating !== null);
     const avgRating = ratedVisits.length
       ? (
@@ -170,32 +181,95 @@ export default function AdminVisitsPage() {
     reportContainer.style.fontFamily = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
     reportContainer.style.color = "#0f172a";
 
+    // Génération des lignes du tableau par École et ses sous-filières
+    const schoolRowsHTML = Object.keys(statsBySchool)
+      .map((school) => {
+        const schData = statsBySchool[school];
+        const schoolTotal = schData.M + schData.F;
+
+        const filieresKeys = Object.keys(schData.filieres);
+        const filiereRows = filieresKeys
+          .map((fil) => {
+            const filData = schData.filieres[fil];
+            const filTotal = filData.M + filData.F;
+            return `
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #cbd5e1; padding: 4px 8px 4px 25px; color: #475569;">└─ ${fil}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; color: #475569;">${filData.M}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; color: #475569;">${filData.F}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: center; font-weight: 500; color: #334155;">${filTotal}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        return `
+          <!-- En-tête École -->
+          <tr style="background-color: #f1f5f9; font-weight: bold;">
+            <td style="border: 1px solid #cbd5e1; padding: 6px; color: #1a5d2b; font-size: 11px;">
+              🏢 ${school}
+            </td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${schData.M}</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${schData.F}</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: #0f172a; background-color: #e2e8f0;">${schoolTotal}</td>
+          </tr>
+          ${filiereRows}
+        `;
+      })
+      .join("");
+
     reportContainer.innerHTML = `
-      <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+      <div style="text-align: center; border-bottom: 2px solid #1a5d2b; padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="margin: 0; font-size: 18px; color: #0f172a; text-transform: uppercase;">
           Rapport Statistique de Fréquentation & Satisfaction
         </h2>
-        <p style="margin: 4px 0 0 0; color: #0284c7; font-size: 13px; font-weight: bold;">
+        <p style="margin: 4px 0 0 0; color: #1a5d2b; font-size: 13px; font-weight: bold;">
           Journée du ${formatDate(date)}
         </p>
       </div>
 
       <!-- SYNTHÈSE GLOBALE -->
-      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px;">
-        <div><strong>Total Fréquentation :</strong> ${visitsOfTheDay.length}</div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px;">
+        <div><strong>Total Visiteurs :</strong> ${visitsOfTheDay.length}</div>
         <div><strong>Hommes :</strong> ${totalHommes} | <strong>Femmes :</strong> ${totalFemmes}</div>
-        <div><strong>Note Moyenne :</strong> ${avgRating} / 5 (${ratedVisits.length} avis)</div>
+        <div><strong>Satisfaction :</strong> ${avgRating} / 5 (${ratedVisits.length} avis)</div>
       </div>
 
-      <!-- SECTION 1 : PAR STATUT / CATÉGORIE -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 13px; color: #0284c7;">1. Répartition par Statut / Catégorie d'usager</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
+      <!-- SECTION 1 : STATISTIQUES PAR ÉCOLE & SEXE & FILIÈRE -->
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+        1. Répartition par École / Établissement, Sexe et Filière
+      </h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
+        <thead>
+          <tr style="background-color: #1a5d2b; color: #ffffff;">
+            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: left;">École / Filière</th>
+            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 65px;">Hommes (M)</th>
+            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 65px;">Femmes (F)</th>
+            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 75px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${schoolRowsHTML}
+          <tr style="background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 11px;">
+            <td style="border: 1px solid #0f172a; padding: 6px;">TOTAL GÉNÉRAL</td>
+            <td style="border: 1px solid #0f172a; padding: 6px; text-align: center;">${totalHommes}</td>
+            <td style="border: 1px solid #0f172a; padding: 6px; text-align: center;">${totalFemmes}</td>
+            <td style="border: 1px solid #0f172a; padding: 6px; text-align: center; color: #38bdf8;">${visitsOfTheDay.length}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 2 : PAR CATÉGORIE D'USAGER -->
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+        2. Répartition par Statut / Catégorie d'Usager
+      </h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
         <thead>
           <tr style="background-color: #f1f5f9;">
             <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: left;">Statut</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Hommes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Femmes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 80px;">Total</th>
+            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 65px;">Hommes</th>
+            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 65px;">Femmes</th>
+            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 75px;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -211,88 +285,18 @@ export default function AdminVisitsPage() {
               </tr>`;
             })
             .join("")}
-          <tr style="background-color: #f8fafc; font-weight: bold;">
-            <td style="border: 1px solid #cbd5e1; padding: 5px;">TOTAL GENERAL</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalHommes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalFemmes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; color: #0284c7;">${visitsOfTheDay.length}</td>
-          </tr>
         </tbody>
       </table>
 
-      <!-- SECTION 2 : PAR ÉCOLE / ENTITÉ -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 13px; color: #0284c7;">2. Répartition par École / Établissement</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
+      <!-- SECTION 3 : PAR MOTIF DE VISITE -->
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+        3. Répartition par Motif de Visite
+      </h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
         <thead>
           <tr style="background-color: #f1f5f9;">
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: left;">École / Entité</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Hommes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Femmes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 80px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Object.keys(statsBySchool)
-            .map((sch) => {
-              const row = statsBySchool[sch];
-              return `
-              <tr>
-                <td style="border: 1px solid #cbd5e1; padding: 5px;">${sch}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${row.M}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${row.F}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">${row.M + row.F}</td>
-              </tr>`;
-            })
-            .join("")}
-          <tr style="background-color: #f8fafc; font-weight: bold;">
-            <td style="border: 1px solid #cbd5e1; padding: 5px;">TOTAL GENERAL</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalHommes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalFemmes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; color: #0284c7;">${visitsOfTheDay.length}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- SECTION 3 : PAR FILIÈRE -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 13px; color: #0284c7;">3. Répartition par Filière d'étude</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
-        <thead>
-          <tr style="background-color: #f1f5f9;">
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: left;">Filière</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Hommes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 70px;">Femmes</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 80px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Object.keys(statsByFiliere)
-            .map((fil) => {
-              const row = statsByFiliere[fil];
-              return `
-              <tr>
-                <td style="border: 1px solid #cbd5e1; padding: 5px;">${fil}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${row.M}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${row.F}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">${row.M + row.F}</td>
-              </tr>`;
-            })
-            .join("")}
-          <tr style="background-color: #f8fafc; font-weight: bold;">
-            <td style="border: 1px solid #cbd5e1; padding: 5px;">TOTAL GENERAL</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalHommes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center;">${totalFemmes}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; color: #0284c7;">${visitsOfTheDay.length}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- SECTION 4 : PAR MOTIF DE VISITE -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 13px; color: #0284c7;">4. Répartition par Motif de Visite</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px;">
-        <thead>
-          <tr style="background-color: #f1f5f9;">
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: left;">Motif</th>
-            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 80px;">Nombre</th>
+            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: left;">Motif de Consultation / Visite</th>
+            <th style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; width: 75px;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -305,18 +309,16 @@ export default function AdminVisitsPage() {
             </tr>`
             )
             .join("")}
-          <tr style="background-color: #f8fafc; font-weight: bold;">
-            <td style="border: 1px solid #cbd5e1; padding: 5px;">TOTAL MOTIFS</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; color: #0284c7;">${visitsOfTheDay.length}</td>
-          </tr>
         </tbody>
       </table>
 
-      <!-- SECTION 5 : AVIS ET INSATISFACTIONS -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 13px; color: #0284c7;">5. Remarques et Insatisfactions (Notes ≤ 2/5)</h4>
+      <!-- SECTION 4 : REMARQUES ET INSATISFACTIONS -->
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+        4. Remarques et Insatisfactions (Notes ≤ 2/5)
+      </h4>
       ${
         negativeReviews.length === 0
-          ? `<p style="font-size: 11px; color: #16a34a; font-style: italic;">Aucune insatisfaction enregistrée pour cette journée.</p>`
+          ? `<p style="font-size: 10px; color: #16a34a; font-style: italic;">Aucune insatisfaction enregistrée pour cette journée.</p>`
           : `
         <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
           <thead>
@@ -351,7 +353,7 @@ export default function AdminVisitsPage() {
     await html2pdf().set(opt).from(reportContainer).save();
   };
 
-  // Groupement par date
+  // Regroupement par date
   const visitsByDay = filteredVisits.reduce((groups: Record<string, VisitRow[]>, visit) => {
     const date = visit.date;
     if (!groups[date]) groups[date] = [];
@@ -405,7 +407,7 @@ export default function AdminVisitsPage() {
         </select>
       </div>
 
-      {/* AFFICHAGE DES REGISTRES */}
+      {/* REGISTRES PAR JOURNÉE */}
       {Object.keys(visitsByDay).length === 0 ? (
         <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px", backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
           Aucun enregistrement correspondant aux filtres.

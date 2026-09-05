@@ -50,8 +50,9 @@ export async function GET() {
       ...item,
       user: {
         ...item.user,
-        school: item.user.school || "Non spécifiée",
-        filiere: item.user.filiere || "Non spécifiée",
+        sex: item.user.sex || "M",
+        school: item.user.school && item.user.school.trim() !== "" ? item.user.school : "Non spécifiée",
+        filiere: item.user.filiere && item.user.filiere.trim() !== "" ? item.user.filiere : "Non spécifiée",
         phone: item.user.phone || "",
       },
     }));

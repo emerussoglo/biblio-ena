@@ -15,6 +15,8 @@ export const users = sqliteTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   role: text("role", { enum: ["admin", "student", "visitor"] }).default("student").notNull(),
+  resetCode: text("reset_code"),
+  resetCodeExpiry: text("reset_code_expiry"),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });

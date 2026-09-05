@@ -379,29 +379,40 @@ export default function Home() {
           </ul>
         </section>
 
-        <section className="info-card reveal-right">
-          <h3>
-            <i className="fa-solid fa-phone"></i> Contacts
-          </h3>
-          <ul className="list-info-contacts">
-            <li>
-              <i className="fa-solid fa-location-dot icon-green"></i>
-              <span>ENA, Abomey-Calavi, Bénin</span>
-            </li>
-            <li>
-              <i className="fa-brands fa-whatsapp icon-green"></i>
-              <span>
-                WhatsApp : <strong>+229 99 90 14 93</strong>
-              </span>
-            </li>
-            <li>
-              <i className="fa-regular fa-envelope icon-green"></i>
-              <span className="email-text">
-                enambeninbibliotheque@gmail.com
-              </span>
-            </li>
-          </ul>
-        </section>
+       <section className="info-card reveal-right">
+  <h3>
+    <i className="fa-solid fa-phone"></i> Contacts
+  </h3>
+  <ul className="list-info-contacts">
+    <li>
+      <i className="fa-solid fa-location-dot icon-green"></i>
+      <span>ENA, Abomey-Calavi, Bénin</span>
+    </li>
+    <li>
+      <i className="fa-brands fa-whatsapp icon-green"></i>
+      <span>
+        WhatsApp :{" "}
+        <a 
+          href="https://wa.me/22999901493" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:underline font-bold"
+        >
+          +229 99 90 14 93
+        </a>
+      </span>
+    </li>
+    <li>
+      <i className="fa-regular fa-envelope icon-green"></i>
+      <a 
+        href="mailto:enambeninbibliotheque@gmail.com" 
+        className="email-text hover:underline"
+      >
+        enambeninbibliotheque@gmail.com
+      </a>
+    </li>
+  </ul>
+</section>
       </div>
 
       <ScrollToTop />

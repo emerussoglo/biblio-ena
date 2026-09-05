@@ -27,28 +27,6 @@ interface UserVisit {
 export default function ProfilPage() {
   const router = useRouter();
 
-  const filieresData: Record<string, string[]> = {
-    ENA: ["AG (Administration Générale)", "AF (Administration des Finances)", "STID (Sciences et Techniques de l'Information et de la Documentation)", "SG (Secrétariat de Gestion)"],
-    FASEG: ["Comptabilité", "Économie", "Gestion des Entreprises", "Finance", "Audit et Contrôle de Gestion", "Marketing", "Gestion des Ressources Humaines"],
-    FLASH: ["Lettres Modernes", "Anglais", "Allemand", "Espagnol", "Géographie", "Histoire", "Sociologie", "Anthropologie", "Psychologie", "Philosophie", "Linguistique"],
-    FADESP: ["Droit Privé", "Droit Public", "Science Politique", "Relations Internationales"],
-    FAST: ["Mathématiques", "Physique", "Chimie", "Biologie", "Biochimie", "Informatique", "Sciences de la Terre"],
-    FSA: ["Agronomie", "Production Végétale", "Production Animale", "Nutrition et Sciences Alimentaires", "Économie Rurale", "Aménagement et Gestion de l'Environnement"],
-    FSS: ["Médecine", "Pharmacie", "Médecine Dentaire"],
-    EPAC: ["Génie Civil", "Génie Électrique", "Génie Mécanique", "Génie Informatique", "Génie Biomédical", "Génie des Procédés", "Maintenance Industrielle", "Télécommunications"],
-    ENEAM: ["Statistique", "Planification", "Analyse Économique", "Informatique de Gestion", "Banque et Finance", "Assurance", "Commerce International", "Marketing", "Gestion des Ressources Humaines", "Entrepreneuriat"],
-    ENSTIC: ["Journalisme", "Communication", "Audiovisuel", "Relations Publiques"],
-    IFRI: ["Génie Logiciel", "Intelligence Artificielle", "Cybersécurité", "Internet et Multimédia", "Systèmes Informatiques", "Réseaux et Télécommunications"],
-    INE: ["Gestion de l'Eau", "Hydrologie", "Hydraulique", "Assainissement"],
-    INMeS: ["Sciences Infirmières", "Sages-Femmes", "Imagerie Médicale", "Kinésithérapie", "Anesthésie-Réanimation"],
-    INJEPS: ["Éducation Physique et Sportive", "Management du Sport", "Loisirs"],
-    INMAAC: ["Archéologie", "Muséologie", "Patrimoine Culturel", "Arts"],
-    IMSP: ["Mathématiques", "Physique"],
-    IGATE: ["Géographie", "Aménagement du Territoire", "Environnement"],
-    FASHS: ["Sociologie", "Anthropologie", "Psychologie"],
-    "AUTRE Ecole": ["Autres filières"],
-  };
-
   const motifLabels: Record<string, string> = {
     consultation_ouvrages: "Consultation d'ouvrages",
     consultation_revues: "Consultation de revues",
@@ -61,8 +39,9 @@ export default function ProfilPage() {
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [historyList, setHistoryList] = useState<UserVisit[]>([]);
-  const [selectedEcole, setSelectedEcole] = useState("");
-  const [selectedFiliere, setSelectedFiliere] = useState("");
+  
+  // États réservés aux champs modifiables
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -87,7 +66,7 @@ export default function ProfilPage() {
         const dataProfil = await responseProfil.json();
         setUser({
           id: dataProfil.id,
-          fullName: dataProfil.fullName,
+          fullName: dataProfil.fullName || "",
           email: dataProfil.email || "",
           phone: dataProfil.phone || "",
           school: dataProfil.school || "",
@@ -95,9 +74,9 @@ export default function ProfilPage() {
           role: dataProfil.role || "student",
         });
 
+        // Initialisation des champs éditables
+        setFullName(dataProfil.fullName || "");
         setPhone(dataProfil.phone || "");
-        setSelectedEcole(dataProfil.school || "");
-        setSelectedFiliere(dataProfil.filiere || "");
 
         const responseHistory = await fetch("/api/visits/history");
         if (responseHistory.ok) {
@@ -135,9 +114,8 @@ export default function ProfilPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: phone || null,
-          school: selectedEcole || null,
-          filiere: selectedFiliere || null,
+          fullName: fullName.trim(),
+          phone: phone.trim() || null,
         }),
       });
 
@@ -149,9 +127,8 @@ export default function ProfilPage() {
       if (user) {
         setUser({
           ...user,
-          phone: phone,
-          school: selectedEcole,
-          filiere: selectedFiliere,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
         });
       }
     } catch (err: unknown) {
@@ -187,8 +164,6 @@ export default function ProfilPage() {
     return <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>Chargement de votre profil...</div>;
   }
 
-  const isStudent = user?.role !== "admin" && (selectedEcole || user?.school);
-
   return (
     <div className="profil-container">
       <h1 className="page-title">Mon Profil</h1>
@@ -210,11 +185,27 @@ export default function ProfilPage() {
           <div>
             <h3>{user?.fullName}</h3>
             <p className="user-email">{user?.email || "Aucun email lié"}</p>
+            {user?.school && (
+              <p style={{ fontSize: "0.85rem", color: "#64748b", marginTop: "2px" }}>
+                {user.school} {user.filiere ? `• ${user.filiere}` : ""}
+              </p>
+            )}
           </div>
         </div>
 
         <form className="profile-form" onSubmit={handleUpdateSubmit}>
           <div className="form-row">
+            <div className="form-group">
+              <label>Nom complet</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ex: Jean Dupont"
+                required
+              />
+            </div>
+
             <div className="form-group">
               <label>Téléphone</label>
               <input
@@ -223,55 +214,6 @@ export default function ProfilPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Ex: 0199000001"
               />
-            </div>
-
-            <div className="form-group">
-              <label>Établissement / École</label>
-              <input
-                type="text"
-                list="schools-list"
-                value={selectedEcole}
-                onChange={(e) => {
-                  setSelectedEcole(e.target.value);
-                  setSelectedFiliere("");
-                }}
-                placeholder="Ex: ENA, FASEG, FAST..."
-                required={!!isStudent}
-              />
-              <datalist id="schools-list">
-                <option value="ENA" />
-                <option value="FASEG" />
-                <option value="FLASH" />
-                <option value="FAST" />
-                <option value="FSS" />
-                <option value="FADESP" />
-                <option value="ENEAM" />
-                <option value="EPAC" />
-                <option value="IFRI" />
-                <option value="INMeS" />
-                <option value="AUTRE Ecole" />
-              </datalist>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Filière</label>
-              <input
-                type="text"
-                list="filieres-list"
-                value={selectedFiliere}
-                onChange={(e) => setSelectedFiliere(e.target.value)}
-                placeholder="Ex: Comptabilité, Informatique..."
-                required={!!isStudent}
-              />
-              <datalist id="filieres-list">
-                {selectedEcole && filieresData[selectedEcole] &&
-                  filieresData[selectedEcole].map((item) => (
-                    <option key={item} value={item} />
-                  ))
-                }
-              </datalist>
             </div>
           </div>
 

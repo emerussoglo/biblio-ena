@@ -7,10 +7,7 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
-  // État pour afficher/masquer le mot de passe
   const [showPassword, setShowPassword] = useState(false);
-  
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,14 +33,13 @@ export default function Login() {
 
       setSuccess(data.message);
 
-      // Redirection intelligente selon le rôle de l'utilisateur
       setTimeout(() => {
         if (data.role === "admin") {
           router.push("/admin");
         } else {
           router.push("/dashboard");
         }
-        router.refresh(); // Force le rafraîchissement pour que le middleware prenne en compte le nouveau cookie
+        router.refresh();
       }, 1000);
 
     } catch (err: any) {
@@ -61,7 +57,6 @@ export default function Login() {
           <p>Accédez à votre espace personnel</p>
         </div>
 
-        {/* Messages Flash d'état */}
         {error && <div className="auth-error-msg" style={{color: '#e53e3e', backgroundColor: '#fff5f5', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontWeight: '500', fontSize: '0.9rem', border: '1px solid #fed7d7'}}>{error}</div>}
         {success && <div className="auth-success-msg" style={{color: '#38a169', backgroundColor: '#f0fff4', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontWeight: '500', fontSize: '0.9rem', border: '1px solid #c6f6d5'}}>{success}</div>}
 
@@ -79,7 +74,15 @@ export default function Login() {
           </div>
 
           <div className="form-group">
-            <label><i className="fa-solid fa-lock"></i> Mot de passe</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+              <label><i className="fa-solid fa-lock"></i> Mot de passe</label>
+              <Link 
+                href="/forgot-password" 
+                style={{ fontSize: "0.85rem", color: "#1a5d2b", fontWeight: "500" }}
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <div className="password-input-wrapper" style={{ position: "relative", width: "100%" }}>
               <input 
                 type={showPassword ? "text" : "password"} 
@@ -88,7 +91,7 @@ export default function Login() {
                 placeholder="Votre mot de passe" 
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                style={{ width: "100%", paddingRight: "40px" }} // Évite que le texte passe sous l'icône de l'œil
+                style={{ width: "100%", paddingRight: "40px" }}
               />
               <span 
                 onClick={() => !loading && setShowPassword(!showPassword)}
@@ -112,7 +115,7 @@ export default function Login() {
           </div>
 
           <button type="submit" className="btn-auth" disabled={loading}>
-           <i className="fa-solid fa-right-to-bracket"></i>  {loading ? "Connexion en cours..." : " Se connecter"}
+            <i className="fa-solid fa-right-to-bracket"></i> {loading ? "Connexion en cours..." : " Se connecter"}
           </button>
         </form>
 

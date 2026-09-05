@@ -21,29 +21,28 @@ export async function PUT(request: Request) {
       );
     }
 
-    // 1. Décoder le token pour identifier l'utilisateur
+    // 1. Décoder le token JWT pour récupérer l'ID de l'utilisateur
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.id as string;
 
-    // 2. Récupérer les données du formulaire
+    // 2. Récupérer uniquement les champs modifiables
     const body = await request.json();
-    const { phone, school, filiere } = body;
+    const { fullName, phone } = body;
 
-    if (!school || !filiere) {
+    if (!fullName || fullName.trim() === "") {
       return NextResponse.json(
-        { message: "L'établissement et la filière sont obligatoires." },
+        { message: "Le nom complet est obligatoire." },
         { status: 400 }
       );
     }
 
-    // 3. Mettre à jour l'utilisateur dans la base Turso
+    // 3. Mettre à jour l'utilisateur dans Turso
     await db
       .update(users)
       .set({
-        phone: phone || null,
-        school,
-        filiere,
-        updatedAt: new Date().toISOString(), // Optionnel : met à jour la date de modification
+        fullName: fullName.trim(),
+        phone: phone ? phone.trim() : null,
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(users.id, userId));
 
