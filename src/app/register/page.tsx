@@ -138,50 +138,44 @@ export default function Register() {
             <>
               <div className="form-group">
                 <label><i className="fa-solid fa-university"></i> Établissement / École</label>
-                <input 
-                  type="text"
-                  list="schools-list"
-                  placeholder="Sélectionnez ou saisissez votre école..."
-                  required 
-                  value={selectedEcole} 
+                <select
+                  required
+                  value={selectedEcole}
                   onChange={(e) => {
                     setSelectedEcole(e.target.value);
-                    setFiliere("");
+                    setFiliere(""); // Réinitialise la filière quand l'école change
                   }}
-                />
-                <datalist id="schools-list">
-                  <option value="ENA" />
-                  <option value="FASEG" />
-                  <option value="FLASH" />
-                  <option value="FAST" />
-                  <option value="FSS" />
-                  <option value="FADESP" />
-                  <option value="ENEAM" />
-                  <option value="ENS" />
-                  <option value="EPAC" />
-                  <option value="IFRI" />
-                  <option value="INMeS" />
-                  <option value="AUTRE Ecole" />
-                </datalist>
+                >
+                  <option value="">Sélectionnez votre école...</option>
+                  {Object.keys(filieresData).map((ecoleKey) => (
+                    <option key={ecoleKey} value={ecoleKey}>
+                      {ecoleKey}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">
                 <label><i className="fa-solid fa-book"></i> Filière</label>
-                <input 
-                  type="text"
-                  list="filieres-list"
-                  placeholder={selectedEcole ? "Sélectionnez ou saisissez votre filière..." : "Saisissez votre filière..."}
-                  required 
+                <select
+                  required
+                  disabled={!selectedEcole}
                   value={filiere}
                   onChange={(e) => setFiliere(e.target.value)}
-                />
-                <datalist id="filieres-list">
-                  {selectedEcole && filieresData[selectedEcole] && 
+                >
+                  <option value="">
+                    {selectedEcole 
+                      ? "Sélectionnez votre filière..." 
+                      : "Veuillez d'abord choisir une école"}
+                  </option>
+                  {selectedEcole && filieresData[selectedEcole] && (
                     filieresData[selectedEcole].map((item) => (
-                      <option key={item} value={item} />
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
                     ))
-                  }
-                </datalist>
+                  )}
+                </select>
               </div>
             </>
           )}

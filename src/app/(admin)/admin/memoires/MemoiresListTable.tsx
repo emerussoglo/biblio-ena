@@ -305,7 +305,7 @@ export default function MemoiresListTable({
                   <p className="abstract-text">{selectedMemoire.abstract || "Aucun résumé."}</p>
                 </div>
                 <div className="detail-grid">
-                  <div><label>Directeur :</label><p>{selectedMemoire.supervisor || "Non renseigné"}</p></div>
+                  <div><label>Directeur de mémoire:</label><p>{selectedMemoire.supervisor || "Non renseigné"}</p></div>
                   <div><label>Lieu de stage :</label><p>{selectedMemoire.internshipLocation || "Non renseigné"}</p></div>
                   <div><label>Mots-clés :</label><p>{selectedMemoire.keywords || "Aucun"}</p></div>
                 </div>

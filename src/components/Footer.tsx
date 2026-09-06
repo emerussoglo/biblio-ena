@@ -3,7 +3,7 @@ export default function Footer() {
   return (
     <footer className="main-footer">
       <div className="footer-content">
-        <p>© {year} ENAM — École Nationale d'Administration</p>
+        <p>© {year} ENA — École Nationale d'Administration</p>
         <span className="footer-separator">•</span>
         <p className="credit-text">
           Conçu par{" "}
