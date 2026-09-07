@@ -238,7 +238,7 @@ export function generateQuitusHTML(q: UserQuitusData): string {
         </div>
       </div>
 
-      <div class="footer">
+      <div class="footer"> 
         <div><strong>Horaire:</strong> Lundi à Vendredi (9h00 – 18h30)</div>
         <div><strong>Contact :</strong> +229 99 90 14 93 | enambeninbibliotheque@gmail.com</div>
       </div>

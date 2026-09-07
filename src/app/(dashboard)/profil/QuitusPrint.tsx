@@ -49,7 +49,7 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
         République du Bénin
       </h3>
       <h2 style="margin: 6px 0 2px 0; font-size: 15px; text-transform: uppercase; color: #0f172a; font-weight: 800; letter-spacing: 0.5px;">
-        École Nationale d'Administration et de Magistrature
+        École Nationale d'Administration
       </h2>
       <p style="margin: 0; font-size: 12px; color: #2563eb; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
         Service de la Documentation et des Archives — Abomey-Calavi
@@ -160,10 +160,11 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
         L'étudiant(e) doit se présenter à la bibliothèque muni(e) de ce document imprimé ainsi que des pièces obligatoires suivantes :
       </p>
       <ul style="margin: 0; padding-left: 18px; line-height: 1.5; color: #0369a1; font-weight: 600;">
-        <li>Version papier du mémoire signée par le Président du Jury</li>
-        <li>Version numérique complète du mémoire enregistrée sur CD</li>
-        <li>Quitus de la comptabilité / CIRF</li>
-        <li>Quittances certifiées de paiement des frais d'établissement des actes</li>
+         <li>Version papier du mémoire signée par le Président du Jury</li>
+          <li>Version numérique complète du mémoire enregistrée sur CD</li>
+          <li>Quitus de la comptabilité </li>
+          <li>Quitus du CIRF</li>
+          <li>Quittances certifiées de paiement des frais d'établissement des actes</li>
       </ul>
     </div>
 
