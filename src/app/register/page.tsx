@@ -112,8 +112,8 @@ export default function Register() {
                 <option value="">Choisir...</option>
                 <option value="M">Masculin</option>
                 <option value="F">Féminin</option>
-              </select>
-            </div>
+              </select> 
+            </div>  
             <div className="form-group">
               <label>Profil</label>
               <select value={userType} onChange={(e) => setUserType(e.target.value)}>

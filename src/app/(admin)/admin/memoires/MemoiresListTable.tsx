@@ -47,9 +47,8 @@ export default function MemoiresListTable({
 }: MemoiresListTableProps) {
   const [selectedMemoire, setSelectedMemoire] = useState<Memoire | null>(null);
   
-  // Modale d'approbation (Quitus Provisoire)
+  // Modale d'approbation (Validation directe)
   const [approvingMemoire, setApprovingMemoire] = useState<Memoire | null>(null);
-  const [mentionInput, setMentionInput] = useState<string>("Très Bien");
   const [isSubmittingApprove, setIsSubmittingApprove] = useState<boolean>(false);
 
   // Modale de rejet / demande de corrections
@@ -67,7 +66,6 @@ export default function MemoiresListTable({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: approvingMemoire.id,
-          mention: mentionInput,
           action: "approve",
         }),
       });
@@ -187,10 +185,7 @@ export default function MemoiresListTable({
                             alignItems: "center",
                             gap: "6px",
                           }}
-                          onClick={() => {
-                            setMentionInput("Très Bien");
-                            setApprovingMemoire(item);
-                          }}
+                          onClick={() => setApprovingMemoire(item)}
                           title="Valider et délivrer le Quitus Provisoire"
                         >
                           <i className="fa-solid fa-file-signature"></i> Valider
@@ -331,7 +326,7 @@ export default function MemoiresListTable({
         </div>
       )}
 
-      {/* MODALE DE VALIDATION QUITUS */}
+      {/* MODALE DE VALIDATION DIRECTE DU QUITUS */}
       {approvingMemoire && (
         <div className="modal-overlay" onClick={() => setApprovingMemoire(null)}>
           <div className="modal-card" style={{ maxWidth: "450px" }} onClick={(e) => e.stopPropagation()}>
@@ -343,27 +338,13 @@ export default function MemoiresListTable({
             </div>
             <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
               <p style={{ margin: 0, fontSize: "14px", color: "#475569" }}>
-                Valider le dépôt pour <strong>{approvingMemoire.fullName}</strong>. Un e-mail contenant son Quitus Provisoire lui sera automatiquement transmis.
+                Êtes-vous sûr de vouloir valider le mémoire de <strong>{approvingMemoire.fullName}</strong> ? Le Quitus Provisoire lui sera automatiquement transmis par e-mail.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontWeight: "600", fontSize: "13px" }}>Mention attribuée :</label>
-                <select
-                  value={mentionInput}
-                  onChange={(e) => setMentionInput(e.target.value)}
-                  style={{ padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                >
-                  <option value="Passable">Passable</option>
-                  <option value="Assez Bien">Assez Bien</option>
-                  <option value="Bien">Bien</option>
-                  <option value="Très Bien">Très Bien</option>
-                  <option value="Excellent">Excellent</option>
-                </select>
-              </div>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
-                <button onClick={() => setApprovingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1" }}>
+                <button onClick={() => setApprovingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", cursor: "pointer" }}>
                   Annuler
                 </button>
-                <button onClick={handleConfirmApprove} disabled={isSubmittingApprove} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#16a34a", color: "#fff", fontWeight: "600" }}>
+                <button onClick={handleConfirmApprove} disabled={isSubmittingApprove} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#16a34a", color: "#fff", fontWeight: "600", cursor: "pointer" }}>
                   {isSubmittingApprove ? <i className="fa-solid fa-spinner fa-spin"></i> : "Valider & Envoyer Mail"}
                 </button>
               </div>
@@ -394,10 +375,10 @@ export default function MemoiresListTable({
                 style={{ padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px", resize: "vertical" }}
               />
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                <button onClick={() => setRejectingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1" }}>
+                <button onClick={() => setRejectingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", cursor: "pointer" }}>
                   Annuler
                 </button>
-                <button onClick={handleConfirmReject} disabled={isSubmittingReject} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#ea580c", color: "#fff", fontWeight: "600" }}>
+                <button onClick={handleConfirmReject} disabled={isSubmittingReject} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#ea580c", color: "#fff", fontWeight: "600", cursor: "pointer" }}>
                   {isSubmittingReject ? <i className="fa-solid fa-spinner fa-spin"></i> : "Notifier l'étudiant"}
                 </button>
               </div>

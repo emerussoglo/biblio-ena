@@ -15,10 +15,10 @@ function getBeninDate() {
   return `${day}/${month}/${year}`;
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: Request) { 
   try {
     const body = await request.json();
-    const { id, mention, action, rejectionReason, physicalDepositStatus } = body;
+    const { id, action, rejectionReason, physicalDepositStatus } = body;
 
     if (!id) {
       return NextResponse.json({ message: "ID du mémoire manquant." }, { status: 400 });
@@ -96,7 +96,6 @@ export async function PUT(request: Request) {
       const currentYear = new Date().getFullYear();
       const prefix = `QSDA-${currentYear}-`;
 
-      // Recherche sécurisée du dernier numéro de quitus généré pour l'année en cours
       const existingQuitus = await db
         .select({ quitusNumber: memoires.quitusNumber })
         .from(memoires)
@@ -119,7 +118,7 @@ export async function PUT(request: Request) {
     }
 
     const approvedAt = getBeninDate();
-    const finalMention = mention || memoire.mention || "Non spécifiée";
+    const finalMention = memoire.mention || "Non spécifiée";
 
     await db
       .update(memoires)
@@ -127,7 +126,6 @@ export async function PUT(request: Request) {
         status: "approved",
         quitusNumber,
         defenseDate: approvedAt,
-        mention: finalMention,
         rejectionReason: null,
         approvedAt,
         updatedAt: nowIso,

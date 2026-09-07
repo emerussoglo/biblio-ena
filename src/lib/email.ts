@@ -128,9 +128,10 @@ export async function sendQuitusApprovalEmail({
           <p>Pour finaliser votre dossier, vous devez vous présenter en personne à la bibliothèque muni(e) des pièces suivantes :</p>
           <ul style="line-height: 1.6; color: #334155;">
             <li>Le <strong>Quitus Provisoire ci-joint</strong> (à imprimer).</li>
-            <li>La <strong>version papier du mémoire</strong>, dûment signée par le Président du jury.</li>
-            <li>La <strong>version numérique sur CD</strong>.</li>
-            <li>Le <strong>quitus de comptabilité / quitus du CIRF</strong>.</li>
+            <li>La <strong>Version papier du mémoire</strong>, dûment signée par le Président du jury.</li>
+            <li>La <strong>Version numérique sur CD</strong>.</li>
+            <li>Le <strong>Quitus de comptabilité</li>
+            <li>Le <strong>Quitus du CIRF</strong>.</li>
             <li>Les <strong>quittances certifiées de paiement</strong> des frais d'établissement des actes.</li>
           </ul>
 

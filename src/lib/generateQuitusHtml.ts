@@ -221,7 +221,8 @@ export function generateQuitusHTML(q: UserQuitusData): string {
         <ul style="margin: 0; padding-left: 18px; font-weight: 600;">
           <li>Version papier du mémoire signée par le Président du Jury</li>
           <li>Version numérique complète du mémoire enregistrée sur CD</li>
-          <li>Quitus de la comptabilité / SIF</li>
+          <li>Quitus de la comptabilité </li>
+          <li>Quitus du CIRF</li>
           <li>Quittances certifiées de paiement des frais d'établissement des actes</li>
         </ul>
       </div>

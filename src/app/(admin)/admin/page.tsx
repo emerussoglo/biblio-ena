@@ -367,7 +367,7 @@ export default function AdminVisitsPage() {
         <p>Chargement des données de statistiques...</p>
       </div>
     );
-  }
+  }  
 
   return (
     <div style={{ padding: "20px" }}>
@@ -377,35 +377,7 @@ export default function AdminVisitsPage() {
         </div>
       )}
 
-      {/* FILTRES D'AFFICHAGE */}
-      <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", gap: "15px", flexWrap: "wrap", alignItems: "center" }}>
-        <span style={{ fontWeight: "700", fontSize: "13px", color: "#334155" }}>Filtres :</span>
-
-        <select
-          value={filterUserType}
-          onChange={(e) => setFilterUserType(e.target.value)}
-          style={selectStyle}
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="etudiant_enam">Étudiants ENAM</option>
-          <option value="etudiant_externe">Étudiants Externes</option>
-          <option value="professionnel">Professionnels</option>
-          <option value="chercheur">Enseignants / Chercheurs</option>
-        </select>
-
-        <select
-          value={filterMotif}
-          onChange={(e) => setFilterMotif(e.target.value)}
-          style={selectStyle}
-        >
-          <option value="all">Tous les motifs</option>
-          <option value="etudes">Études</option>
-          <option value="recherche">Travaux de recherche</option>
-          <option value="stages">Stages</option>
-          <option value="depot">Dépôt de mémoires</option>
-          <option value="consultation_ouvrages">Consultation d'ouvrages</option>
-        </select>
-      </div>
+      
 
       {/* REGISTRES PAR JOURNÉE */}
       {Object.keys(visitsByDay).length === 0 ? (

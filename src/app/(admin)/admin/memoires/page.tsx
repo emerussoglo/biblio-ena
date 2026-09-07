@@ -18,7 +18,7 @@ export default function AdminMemoiresPage() {
       setLoading(true);
       const res = await fetch("/api/admin/memoires");
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json(); 
         setMemoiresList(data);
       } else {
         console.error("Erreur serveur lors de la récupération des mémoires");
