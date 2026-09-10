@@ -234,7 +234,7 @@ export function generateQuitusHTML(q: UserQuitusData): string {
           </div>
           <div style="font-size: 12px; font-weight: 800; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
             Cadnel HOUNSA
-          </div>
+          </div> 
         </div>
       </div>
 

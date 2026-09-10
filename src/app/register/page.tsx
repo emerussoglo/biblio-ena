@@ -7,26 +7,265 @@ export default function Register() {
   const router = useRouter();
 
   const filieresData: Record<string, string[]> = {
-    "ENA": ["AG (Administration Générale)", "AF (Administration des Finances)", "STID (Sciences et Techniques de l'Information et de la Documentation)", "SG (Secrétariat de Gestion)"],
-    "FASEG": ["Comptabilité", "Économie", "Gestion des Entreprises", "Finance", "Audit et Contrôle de Gestion", "Marketing", "Gestion des Ressources Humaines"],
-    "FLASH": ["Lettres Modernes", "Anglais", "Allemand", "Espagnol", "Géographie", "Histoire", "Sociologie", "Anthropologie", "Psychologie", "Philosophie", "Linguistique"],
-    "FADESP": ["Droit Privé", "Droit Public", "Science Politique", "Relations Internationales"],
-    "FAST": ["Mathématiques", "Physique", "Chimie", "Biologie", "Biochimie", "Informatique", "Sciences de la Terre"],
-    "FSA": ["Agronomie", "Production Végétale", "Production Animale", "Nutrition et Sciences Alimentaires", "Économie Rurale", "Aménagement et Gestion de l'Environnement"],
-    "FSS": ["Médecine", "Pharmacie", "Médecine Dentaire"],
-    "EPAC": ["Génie Civil", "Génie Électrique", "Génie Mécanique", "Génie Informatique", "Génie Biomédical", "Génie des Procédés", "Maintenance Industrielle", "Télécommunications"],
-    "ENEAM": ["Statistique", "Planification", "Analyse Économique", "Informatique de Gestion", "Banque et Finance", "Assurance", "Commerce International", "Marketing", "Gestion des Ressources Humaines", "Entrepreneuriat"],
-    "ENSTIC": ["Journalisme", "Communication", "Audiovisuel", "Relations Publiques"],
-    "IFRI": ["Génie Logiciel", "Intelligence Artificielle", "Cybersécurité", "Internet et Multimédia", "Systèmes Informatiques", "Réseaux et Télécommunications"],
-    "INE": ["Gestion de l'Eau", "Hydrologie", "Hydraulique", "Assainissement"],
-    "INMeS": ["Sciences Infirmières", "Sages-Femmes", "Imagerie Médicale", "Kinésithérapie", "Anesthésie-Réanimation"],
-    "INJEPS": ["Éducation Physique et Sportive", "Management du Sport", "Loisirs"],
-    "INMAAC": ["Archéologie", "Muséologie", "Patrimoine Culturel", "Arts"],
-    "IMSP": ["Mathématiques", "Physique"],
-    "IGATE": ["Géographie", "Aménagement du Territoire", "Environnement"],
-    "FASHS": ["Sociologie", "Anthropologie", "Psychologie"],
-    "AUTRE Ecole": ["Autres filières"]
-  };
+    
+  "CEFORP": [
+    "Dynamique de Population et Planification Régionale"
+  ],
+  "CIFRED": [
+    "Hygiène et Santé Publique",
+    "Gestion du cadre de vie",
+    "Environnement pour le Développement Durable"
+  ],
+  "ENA": [
+    "Administration Générale",
+    "Administration des Finances",
+    "Secrétariat de Gestion",
+    "Sciences et Techniques de l'Information documentaire"
+  ],
+  "ENATSE": [
+    "Santé publique et surveillance épidémiologique"
+  ],
+  "ENEAM": [
+    "Administration des Réseaux informatiques",
+    "Analyse Programmation Informatique",
+    "Assurance",
+    "Banque et Finance de Marché",
+    "Banque et Micro Institutions des finances",
+    "Marketing et Communication Commerciale",
+    "Marketing et Management Commercial",
+    "Gestion des Ressources Humaines",
+    "Gestion des Transports",
+    "Gestion de Logistique",
+    "Statistique Économique et Sectorielle",
+    "Statistique Démographique et Sociale",
+    "Planification et Gestion des Projets",
+    "Planification et Économie du Développement Durable",
+    "Développement Local et Régional",
+    "Gestion Financière et Comptable"
+  ],
+  "ENS-Porto-Novo": [
+    "Histoire et Géographie",
+    "Espagnol",
+    "Allemand",
+    "Anglais",
+    "Français",
+    "Philosophie"
+  ],
+  "ENSET": [
+    "Comptabilité",
+    "Économie",
+    "Electrotechnique",
+    "Génie Civil",
+    "Secrétariat",
+    "Mécanique Automobile",
+    "Fabrication Industrielle",
+    "Économie Familiale et Sociale",
+    "Hôtellerie-Restauration",
+    "Froid et Climatisation",
+    "Electronique",
+    "Energies Renouvelables",
+    "Production Animale",
+    "Production végétale"
+  ],
+  "ENSPD": [
+    "Statistiques Appliquées",
+    "Planification et Suivi Evaluation"
+  ],
+  "ENSTIC": [
+    "Journalisme",
+    "Métiers de l'Audiovisuel et du Multimédia"
+  ],
+  "EPA": [
+    "Gestion du patrimoine culturel"
+  ],
+  "EPAC": [
+    "Génie Informatique et Télécom",
+    "Génie Chimique - procédés",
+    "Machinisme Agricole",
+    "Génie Biomédical (Maintenance Biomédicale et Hospitalière)"
+  ],
+  "FA-Parakou": [
+    "Sciences et Techniques de Production Végétale",
+    "Sciences et Techniques de Production Animale et Halieutique",
+    "Aménagement et Gestion des Ressources Naturelles",
+    "Sociologie et Economie Rurales",
+    "Nutrition et Sciences Agro-alimentaires"
+  ],
+  "FADESP": [
+    "Droit Privé",
+    "Droit Public",
+    "Sciences Politiques et Relations Internationales"
+  ],
+  "FASEG": [
+    "Sciences Économiques et de Gestion (Tronc commun)",
+    "Économétrie et Statistiques Appliquées",
+    "Comptabilité",
+    "Finance",
+    "Marketing",
+    "Gestion des Ressources Humaines"
+  ],
+  "FASEG-Parakou": [
+    "Analyse et Politique Économique (APE)",
+    "Économie Agricole (EA)",
+    "Economie et Finance des Collectivités Locales (EFCL)",
+    "Economie Internationales et Finance (EFI)",
+    "Entrepreneuriat et Gestion des Entreprises (EGE)",
+    "Marketing et Management des Organisations (MMO)",
+    "Finance et Comptabilité (FC)"
+  ],
+  "FASHS": [
+    "Géographie et Aménagement du Territéire",
+    "Psychologie",
+    "Sciences de l'Education et de la Formation",
+    "Philosophie",
+    "Socio-Anthropologie",
+    "Histoire et Archéologie",
+    "Psychologie du travail et des Organisations"
+  ],
+  "FAST": [
+    "Sciences de la Vie et de la Terre",
+    "Physique-Chimie",
+    "Mathématiques Informatique et Applications",
+    "Energies Renouvelables et Systèmes Énergétiques",
+    "Génétique, Biotechnologies et Ressources Biologiques",
+    "Microbiologie et Biotechnologie Alimentaire",
+    "Hydrobiologie Appliquée"
+  ],
+  "FDSP-Parakou": [
+    "Droit Privé",
+    "Droit Public",
+    "Sciences Politiques et Relations Internationales"
+  ],
+  "FLASH-Adjarra": [
+    "Aménagement du Territoire",
+    "Socio-Anthropologie",
+    "Anglais"
+  ],
+  "FLASH-Parakou": [
+    "Allemand",
+    "Anglais",
+    "Espagnol",
+    "Géographie et Aménagement du Territoire",
+    "Sociologie Anthropologie",
+    "Lettres Modernes",
+    "Langue Arabe"
+  ],
+  "FLLAC": [
+    "Allemand",
+    "Anglais",
+    "Espagnol",
+    "Lettres Modernes",
+    "Sciences du Langage et de la Communication"
+  ],
+  "FM-Parakou": [
+    "Médecine Humaine"
+  ],
+  "FSA": [
+    "Sciences et Techniques de Production Végétale",
+    "Sciences et Techniques de Production Animale",
+    "Aménagement et Gestion des Forêts et Parcours Naturels",
+    "Génie Rural, Pêche et Aquaculture",
+    "Nutrition et Technologie Alimentaire",
+    "Agroéconomie, Sociologie et Vulgarisation Rurales"
+  ],
+  "FSS": [
+    "Médecine Générale",
+    "Pharmacie",
+    "Kinésithérapie",
+    "Assistance sociale",
+    "Nutrition et Diététique"
+  ],
+  "HERCI": [
+    "Commerce International",
+    "Négoce International",
+    "Relations Maritimes Internationales",
+    "Gestion des Achats et Logistique International"
+  ],
+  "IFRI": [
+    "Génie Logiciel",
+    "Internet et Multimédia",
+    "Intelligence artificielle (IA)",
+    "Systèmes embarqués et Internet des Objets (SEIoT)",
+    "Sécurité Informatique"
+  ],
+  "IFSIO": [
+    "Soins Infirmiers",
+    "Soins obstétricaux"
+  ],
+  "IGATE": [
+    "Gestion des changements climatiques et des écosystèmes",
+    "Géomatique et Environnement",
+    "Planification et Gestion des espaces urbains et ruraux"
+  ],
+  "ILACI": [
+    "Langue Arabe",
+    "Culture Islamique",
+    "Finance Islamique",
+    "Traduction arabe-français"
+  ],
+  "IMSP": [
+    "Mathématiques",
+    "Physique",
+    "Classes préparatoires MPSI (Mathématiques, Physiques et Science de l'Ingénieur)",
+    "Classes préparatoires PCSI (Physiques, Chimie et Science de l'Ingénieur)"
+  ],
+  "INE": [
+    "Hydrologie quantitative et Gestion intégrée des Ressources",
+    "Hydrogéologie et Gestion intégrée des Ressources",
+    "Ecohydrologie et Gestion intégrée des Ressources",
+    "Gestion des crises et risques liés à l'eau et au climat",
+    "Hydraulique et Assainissement",
+    "Eau Hygiène et Assainissement (EHA)",
+    "Génie rural et Maîtrise de l'Eau"
+  ],
+  "INJEPS": [
+    "Education Physique et Sportive",
+    "Entrainement Sportif",
+    "Développement communautaire",
+    "Andragogie",
+    "Récréology",
+    "Entrepreneuriat social"
+  ],
+  "INMAAC": [
+    "Administration Culturelle",
+    "Arts dramatiques",
+    "Arts Plastiques",
+    "Musique et Musicologie",
+    "Cinéma et Audiovisuel"
+  ],
+  "INMeS": [
+    "Sciences Infirmières",
+    "Sciences Obstétricales"
+  ],
+  "INSTI": [
+    "Génie Civil",
+    "Génie Énergétique (Energies Renouvelables et Systèmes Énergétiques)",
+    "Génie Énergétique (Froid et climatisation)",
+    "Génie Electrique et Informatique (Informatique et Télécommunications)",
+    "Génie Electrique et Informatique (Electronique et Electrotechnique)",
+    "Maintenance des Systèmes (Electricité Industrielle et de bâtiments)",
+    "Maintenance des Systèmes (Maintenance Industrielle)",
+    "Maintenance des Systèmes (Maintenance Automobile)"
+  ],
+  "Institut Confucius": [
+    "Langue Chinoise",
+    "Didactique du Chinois"
+  ],
+  "IRSP": [
+    "Santé publique polyvalente"
+  ],
+  "IUT-Parakou": [
+    "Gestion des Banques",
+    "Gestion Commerciale",
+    "Gestion des Entreprises",
+    "Gestion des Transports et Logistiques",
+    "Informatique de Gestion",
+    "Gestion des Ressources Humaines"
+  ],
+  "AUTRE Ecole": [
+    "Autres filières"
+  ]
+};
 
   const [fullName, setFullName] = useState("");
   const [sex, setSex] = useState("");
