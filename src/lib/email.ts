@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
-import { execSync } from "child_process";
 import fs from "fs";
 import { generateQuitusHTML, UserQuitusData } from "./generateQuitusHtml";
 
@@ -33,7 +32,9 @@ function getLocalChromePath(): string {
     if (fs.existsSync(p)) return p;
   }
 
-  throw new Error("Aucun navigateur compatible (Chrome ou Edge) trouvé sur ce PC.");
+  throw new Error(
+    "Aucun navigateur compatible (Chrome ou Edge) trouvé sur ce PC.",
+  );
 }
 
 /**
@@ -48,7 +49,8 @@ async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
   let browser: any = null;
 
   try {
-    const isVercel = Boolean(process.env.VERCEL) || process.env.NODE_ENV === "production";
+    const isVercel =
+      Boolean(process.env.VERCEL) || process.env.NODE_ENV === "production";
 
     let executablePath = "";
 
@@ -56,7 +58,7 @@ async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
       // Indique explicitement l'URL de téléchargement de l'archive Chromium
       // Cela évite de chercher le dossier /bin inexistant dans le container Vercel
       executablePath = await chromium.executablePath(
-        "https://github.com/sparticuz/chromium/releases/download/v126.0.0/chromium-v126.0.0-pack.tar"
+        "https://github.com/sparticuz/chromium/releases/download/v126.0.0/chromium-v126.0.0-pack.tar",
       );
     } else {
       // Configuration Développement Windows local
@@ -64,7 +66,9 @@ async function generatePdfBuffer(quitusData: UserQuitusData): Promise<Buffer> {
     }
 
     browser = await puppeteerCore.launch({
-      args: isVercel ? chromium.args : ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: isVercel
+        ? chromium.args
+        : ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath,
       headless: true,
     });
@@ -114,6 +118,13 @@ export async function sendQuitusApprovalEmail({
             "${quitusData.title}"
           </blockquote>
           <p>a été <strong>validé sur le plan numérique</strong>.</p>
+
+          <table style="width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px;">
+            <tr><td style="padding: 6px; background: #f8fafc; font-weight: bold;">Cycle</td><td style="padding: 6px;">${quitusData.cycle || "-"}</td></tr>
+            <tr><td style="padding: 6px; background: #f8fafc; font-weight: bold;">Note</td><td style="padding: 6px;">${quitusData.note ?? "-"}${quitusData.note !== null && quitusData.note !== undefined ? "/20" : ""}</td></tr>
+            <tr><td style="padding: 6px; background: #f8fafc; font-weight: bold;">Mention</td><td style="padding: 6px;">${quitusData.mention || "-"}</td></tr>
+            <tr><td style="padding: 6px; background: #f8fafc; font-weight: bold;">Régime</td><td style="padding: 6px;">${quitusData.regime === "journee" ? "Journée" : quitusData.regime === "soir" ? "Soir" : quitusData.regime || "-"}</td></tr>
+          </table>
           
           <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: center;">
             <span style="color: #166534; font-weight: bold; font-size: 16px;">

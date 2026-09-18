@@ -6,7 +6,7 @@ import { eq, and, or } from "drizzle-orm";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_key_production"
+  process.env.JWT_SECRET || "fallback_secret_key_production",
 );
 
 export async function GET() {
@@ -38,7 +38,10 @@ export async function GET() {
         fullName: memoires.fullName,
         matricule: memoires.matricule,
         filiere: memoires.filiere,
+        cycle: memoires.cycle,
+        note: memoires.note,
         academicYear: memoires.academicYear,
+        regime: memoires.regime,
         supervisor: memoires.supervisor,
         internshipLocation: memoires.internshipLocation,
         quitusNumber: memoires.quitusNumber,
@@ -56,9 +59,9 @@ export async function GET() {
           eq(memoires.status, "approved"),
           or(
             eq(memoires.userId, userId),
-            userEmail ? eq(memoires.email, userEmail) : undefined
-          )
-        )
+            userEmail ? eq(memoires.email, userEmail) : undefined,
+          ),
+        ),
       );
 
     return NextResponse.json(userQuitusList, { status: 200 });
@@ -66,7 +69,7 @@ export async function GET() {
     console.error("Erreur lors de la récupération des quitus :", error);
     return NextResponse.json(
       { message: "Erreur serveur lors de la récupération des quitus." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

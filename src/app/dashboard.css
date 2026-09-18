@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 /* --- VARIABLES & RESET --- */
 :root {
@@ -15,7 +15,6 @@
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
- 
 
 * {
   box-sizing: border-box;
@@ -171,6 +170,38 @@ body {
   position: relative;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbar-logout-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid rgba(26, 93, 43, 0.18);
+  border-radius: 10px;
+  color: #b91c1c;
+  background: #fff7f7;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.topbar-logout-link:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.14);
+}
+
 .topbar-user {
   display: flex;
   align-items: center;
@@ -187,7 +218,11 @@ body {
 .user-initials {
   width: 42px;
   height: 42px;
-  background: linear-gradient(135deg, var(--enam-green-dark, #0d3b19) 0%, var(--enam-green, #1a5d2b) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--enam-green-dark, #0d3b19) 0%,
+    var(--enam-green, #1a5d2b) 100%
+  );
   color: #ffffff;
   border-radius: 50%;
   display: flex;
@@ -209,7 +244,9 @@ body {
   border-radius: 16px;
   padding: 8px;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.03);
   z-index: 100;
   animation: dropdownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: top right;
@@ -365,7 +402,9 @@ body {
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   border: 1px solid #f1f5f9;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
@@ -448,8 +487,62 @@ body {
     font-size: 1.15rem;
   }
 
+  .topbar-logout-link span {
+    display: none;
+  }
+
+  .topbar-logout-link {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .dash-topbar {
+    padding: 0 12px;
+  }
+
+  .topbar-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .dash-content {
-    padding: 20px 16px 100px;
+    padding: 16px 12px 92px;
+    overflow-x: hidden;
+  }
+
+  .welcome-container,
+  .profil-container {
+    width: 100%;
+  }
+
+  .registration-card,
+  .profile-card,
+  .history-card {
+    padding: 20px 14px;
+  }
+
+  .admin-page-header {
+    gap: 14px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .modal-card {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 32px);
   }
 
   .mobile-tabbar {
@@ -495,6 +588,51 @@ body {
   animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.dash-content > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.dash-content > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.dash-topbar {
+  animation: topbarEnter 0.45s ease-out both;
+}
+.dash-sidebar {
+  animation: sidebarEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes topbarEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sidebarEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ==========================================================================
    PAGE D'ACCUEIL DASHBOARD (ENREGISTREMENT & TICKET)
    ========================================================================== */
@@ -532,7 +670,9 @@ body {
   background: #ffffff;
   padding: 36px;
   border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.02);
   border: 1px solid rgba(226, 232, 240, 0.8);
   text-align: left;
   transition: all 0.3s ease;
@@ -569,7 +709,8 @@ body {
   gap: 14px 24px;
 }
 
-.info-item, .info-item-full {
+.info-item,
+.info-item-full {
   font-size: 0.9rem;
   color: #334155;
   display: flex;
@@ -577,12 +718,14 @@ body {
   gap: 6px;
 }
 
-.info-item span, .info-item-full span {
+.info-item span,
+.info-item-full span {
   color: #64748b;
   font-weight: 500;
 }
 
-.info-item strong, .info-item-full strong {
+.info-item strong,
+.info-item-full strong {
   color: #0f172a;
   font-weight: 700;
 }
@@ -710,7 +853,6 @@ body {
   }
 }
 
-
 /* ==========================================================================
    PAGE PROFIL & HISTORIQUE DES PASSAGES
    ========================================================================== */
@@ -734,17 +876,21 @@ body {
    CARTES CONTENEURS (PROFIL ET HISTORIQUE)
    ========================================================================== */
 
-.profile-card, .history-card {
+.profile-card,
+.history-card {
   background: #ffffff;
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.02);
   border: 1px solid rgba(226, 232, 240, 0.8);
   transition: box-shadow 0.3s ease;
 }
 
-.profile-card:hover, .history-card:hover {
+.profile-card:hover,
+.history-card:hover {
   box-shadow: 0 14px 35px rgba(0, 0, 0, 0.05);
 }
 
@@ -814,7 +960,7 @@ body {
   margin-bottom: 8px;
 }
 
-.profile-form input, 
+.profile-form input,
 .profile-form select {
   width: 100%;
   padding: 12px 16px;
@@ -827,7 +973,7 @@ body {
   box-sizing: border-box;
 }
 
-.profile-form input:focus, 
+.profile-form input:focus,
 .profile-form select:focus {
   outline: none;
   border-color: var(--enam-green, #1a5d2b);
@@ -968,7 +1114,8 @@ body {
     padding: 0 8px 30px 8px;
   }
 
-  .profile-card, .history-card {
+  .profile-card,
+  .history-card {
     padding: 20px 16px;
     border-radius: 16px;
   }
@@ -995,7 +1142,6 @@ body {
     justify-content: center;
   }
 }
-
 
 .logout-section {
   display: flex;
@@ -1029,8 +1175,6 @@ body {
   border-color: #fecaca;
   transform: translateY(-2px);
 }
-
-
 
 /* ==========================================================================
    PAGE CATALOGUE - RECHERCHE ET FILTRES
@@ -1289,7 +1433,7 @@ body {
   }
 
   .select-filter {
-    flex: 1; 
+    flex: 1;
     min-width: 0;
   }
 
@@ -1298,14 +1442,13 @@ body {
   }
 }
 
-
 /* --- USER DROPDOWN MENU --- */
 .user-dropdown-menu {
   position: absolute;
   top: 115%; /* S'affiche juste en dessous de la topbar */
   right: 0;
   width: 210px;
-  font-family:"Poppins", serif;
+  font-family: "Poppins", serif;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -1358,7 +1501,7 @@ body {
 }
 
 .dropdown-item.logout-btn {
-  color: #e53e3e; 
+  color: #e53e3e;
 }
 
 .dropdown-item.logout-btn:hover {
@@ -1377,11 +1520,6 @@ body {
   }
 }
 
-
-
-
-
-
 /* ==========================================================================
    PAGE DÉPÔT DE MÉMOIRE - STYLES SPÉCIFIQUES
    ========================================================================== */
@@ -1395,7 +1533,6 @@ body {
 .submit-header {
   margin-bottom: 10px;
 }
-
 
 .submit-header h1 {
   font-size: 1.8rem;
@@ -1702,17 +1839,6 @@ body {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /* ==========================================
    PAGE ADMIN - GESTION DES MÉMOIRES
    ========================================== */
@@ -1917,7 +2043,9 @@ body {
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.15),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   margin: auto;
 }

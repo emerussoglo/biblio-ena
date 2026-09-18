@@ -102,32 +102,42 @@ export default function AdminLayout({
           </div>
 
           {/* Zone Utilisateur avec Dropdown */}
-          <div className="topbar-user-wrapper" style={{ position: "relative" }}>
+          <div className="topbar-actions">
+            <button onClick={handleLogout} className="topbar-logout-link">
+              <i className="fa-solid fa-right-from-bracket"></i>
+              <span>Déconnexion</span>
+            </button>
             <div
-              className="topbar-user"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{ cursor: "pointer" }}
+              className="topbar-user-wrapper"
+              style={{ position: "relative" }}
             >
-              <span className="user-initials">{userInitial}</span>
-            </div>
-
-            {/* Menu Déroulant (Dropdown) */}
-            {dropdownOpen && (
-              <div className="user-dropdown-menu">
-                <div className="dropdown-user-info">
-                  <p className="dropdown-name">
-                    {userFullName || "Administrateur"}
-                  </p>
-                </div>
-                <hr className="dropdown-divider" />
-                <button
-                  onClick={handleLogout}
-                  className="dropdown-item logout-btn"
-                >
-                  <i className="fa-solid fa-right-from-bracket"></i> Déconnexion
-                </button>
+              <div
+                className="topbar-user"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                style={{ cursor: "pointer" }}
+              >
+                <span className="user-initials">{userInitial}</span>
               </div>
-            )}
+
+              {/* Menu Déroulant (Dropdown) */}
+              {dropdownOpen && (
+                <div className="user-dropdown-menu">
+                  <div className="dropdown-user-info">
+                    <p className="dropdown-name">
+                      {userFullName || "Administrateur"}
+                    </p>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  <button
+                    onClick={handleLogout}
+                    className="dropdown-item logout-btn"
+                  >
+                    <i className="fa-solid fa-right-from-bracket"></i>{" "}
+                    Déconnexion
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

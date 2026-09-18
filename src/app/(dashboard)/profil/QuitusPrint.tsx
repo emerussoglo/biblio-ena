@@ -8,7 +8,10 @@ export interface UserQuitus {
   fullName: string;
   matricule?: string | null;
   filiere: string | null;
+  cycle: "I" | "II" | string | null;
+  note: number | null;
   academicYear: string | null;
+  regime: "journee" | "soir" | string | null;
   supervisor: string | null;
   internshipLocation: string | null;
   quitusNumber: string;
@@ -18,6 +21,14 @@ export interface UserQuitus {
   year: string | null;
   status?: string;
   physicalDepositStatus?: "pending" | "verified";
+}
+
+interface QuitusPdfOptions {
+  margin: number;
+  filename: string;
+  image: { type: string; quality: number };
+  html2canvas: { scale: number; useCORS: boolean; logging: boolean };
+  jsPDF: { unit: string; format: string; orientation: string };
 }
 
 export const downloadQuitusPDF = async (q: UserQuitus) => {
@@ -110,6 +121,22 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
         <span style="flex: 1; color: #0f172a;">${q.filiere || "-"}</span>
       </div>
       <div style="display: flex; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
+        <span style="width: 200px; font-weight: 700; color: #475569;">Cycle :</span>
+        <span style="flex: 1; color: #0f172a;">${q.cycle || "-"}</span>
+      </div>
+      <div style="display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
+        <span style="width: 200px; font-weight: 700; color: #475569;">Note obtenue :</span>
+        <span style="flex: 1; color: #0f172a;">${q.note ?? "-"}${q.note !== null && q.note !== undefined ? "/20" : ""}</span>
+      </div>
+      <div style="display: flex; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
+        <span style="width: 200px; font-weight: 700; color: #475569;">Mention :</span>
+        <span style="flex: 1; color: #0f172a;">${q.mention || "-"}</span>
+      </div>
+      <div style="display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
+        <span style="width: 200px; font-weight: 700; color: #475569;">Régime :</span>
+        <span style="flex: 1; color: #0f172a;">${q.regime === "journee" ? "Journée" : q.regime === "soir" ? "Soir" : q.regime || "-"}</span>
+      </div>
+      <div style="display: flex; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 9px 14px;">
         <span style="width: 200px; font-weight: 700; color: #475569;">Année académique :</span>
         <span style="flex: 1; color: #0f172a;">${q.academicYear || "-"}</span>
       </div>
@@ -192,7 +219,7 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
   </div>
 `;
 
-  const opt: any = {
+  const opt: QuitusPdfOptions = {
     margin: 10,
     filename: `Quitus_Provisoire_${q.quitusNumber}.pdf`,
     image: { type: "jpeg", quality: 0.98 },
@@ -203,7 +230,11 @@ export const downloadQuitusPDF = async (q: UserQuitus) => {
   await html2pdf().set(opt).from(element).save();
 };
 
-export default function QuitusSection({ quitusList }: { quitusList: UserQuitus[] }) {
+export default function QuitusSection({
+  quitusList,
+}: {
+  quitusList: UserQuitus[];
+}) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   if (!quitusList || quitusList.length === 0) return null;
@@ -231,11 +262,27 @@ export default function QuitusSection({ quitusList }: { quitusList: UserQuitus[]
         marginBottom: "25px",
       }}
     >
-      <h3 style={{ color: "#166534", marginTop: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-        <i className="fa-solid fa-certificate"></i> Vos Quitus Provisoires Disponibles
+      <h3
+        style={{
+          color: "#166534",
+          marginTop: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+        }}
+      >
+        <i className="fa-solid fa-certificate"></i> Vos Quitus Provisoires
+        Disponibles
       </h3>
-      
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "15px" }}>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          marginTop: "15px",
+        }}
+      >
         {quitusList.map((item) => (
           <div
             key={item.id}
@@ -248,24 +295,56 @@ export default function QuitusSection({ quitusList }: { quitusList: UserQuitus[]
               borderRadius: "6px",
               border: "1px solid #e2e8f0",
               flexWrap: "wrap",
-              gap: "10px"
+              gap: "10px",
             }}
           >
             <div>
-              <strong style={{ color: "#0f172a", display: "block", fontSize: "1rem" }}>{item.title}</strong>
-              <div style={{ fontSize: "0.85rem", color: "#64748b", marginTop: "4px" }}>
-                <span>N° {item.quitusNumber} | Validé le : {item.approvedAt}</span>
+              <strong
+                style={{ color: "#0f172a", display: "block", fontSize: "1rem" }}
+              >
+                {item.title}
+              </strong>
+              <div
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#64748b",
+                  marginTop: "4px",
+                }}
+              >
+                <span>
+                  N° {item.quitusNumber} | Validé le : {item.approvedAt}
+                </span>
               </div>
-              
+
               {/* Badge de Dépôt Physique */}
               <div style={{ marginTop: "6px" }}>
                 {item.physicalDepositStatus === "verified" ? (
-                  <span style={{ fontSize: "0.75rem", backgroundColor: "#dcfce7", color: "#15803d", padding: "2px 8px", borderRadius: "4px", fontWeight: "600" }}>
-                    <i className="fa-solid fa-circle-check"></i> Pièces physiques déposées à la bibliothèque
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      backgroundColor: "#dcfce7",
+                      color: "#15803d",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <i className="fa-solid fa-circle-check"></i> Pièces
+                    physiques déposées à la bibliothèque
                   </span>
                 ) : (
-                  <span style={{ fontSize: "0.75rem", backgroundColor: "#fef3c7", color: "#b45309", padding: "2px 8px", borderRadius: "4px", fontWeight: "600" }}>
-                    <i className="fa-solid fa-clock"></i> En attente du dépôt des pièces physiques (CD, Mémoire imprimé, etc.)
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      backgroundColor: "#fef3c7",
+                      color: "#b45309",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <i className="fa-solid fa-clock"></i> En attente du dépôt
+                    des pièces physiques (CD, Mémoire imprimé, etc.)
                   </span>
                 )}
               </div>
@@ -291,11 +370,13 @@ export default function QuitusSection({ quitusList }: { quitusList: UserQuitus[]
             >
               {downloadingId === item.id ? (
                 <>
-                  <i className="fa-solid fa-spinner fa-spin"></i> Génération PDF...
+                  <i className="fa-solid fa-spinner fa-spin"></i> Génération
+                  PDF...
                 </>
               ) : (
                 <>
-                  <i className="fa-solid fa-download"></i> Télécharger le Quitus PDF
+                  <i className="fa-solid fa-download"></i> Télécharger le Quitus
+                  PDF
                 </>
               )}
             </button>

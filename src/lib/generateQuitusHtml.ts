@@ -4,7 +4,10 @@ export interface UserQuitusData {
   matricule?: string | null;
   title: string;
   filiere?: string | null;
+  cycle?: "I" | "II" | string | null;
+  note?: number | null;
   academicYear?: string | null;
+  regime?: "journee" | "soir" | string | null;
   supervisor?: string | null;
   internshipLocation?: string | null;
   mention?: string | null;
@@ -187,6 +190,22 @@ export function generateQuitusHTML(q: UserQuitusData): string {
         <tr>
           <td class="label">Filière / Spécialité :</td>
           <td class="val">${q.filiere || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Cycle :</td>
+          <td class="val">${q.cycle || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Note obtenue :</td>
+          <td class="val">${q.note ?? "-"}${q.note !== null && q.note !== undefined ? "/20" : ""}</td>
+        </tr>
+        <tr>
+          <td class="label">Mention :</td>
+          <td class="val">${q.mention || "-"}</td>
+        </tr>
+        <tr>
+          <td class="label">Régime :</td>
+          <td class="val">${q.regime === "journee" ? "Journée" : q.regime === "soir" ? "Soir" : q.regime || "-"}</td>
         </tr>
         <tr>
           <td class="label">Année académique :</td>

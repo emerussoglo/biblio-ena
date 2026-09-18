@@ -15,13 +15,16 @@ function getBeninDate() {
   return `${day}/${month}/${year}`;
 }
 
-export async function PUT(request: Request) { 
+export async function PUT(request: Request) {
   try {
     const body = await request.json();
     const { id, action, rejectionReason, physicalDepositStatus } = body;
 
     if (!id) {
-      return NextResponse.json({ message: "ID du mémoire manquant." }, { status: 400 });
+      return NextResponse.json(
+        { message: "ID du mémoire manquant." },
+        { status: 400 },
+      );
     }
 
     // Récupération du mémoire
@@ -34,14 +37,18 @@ export async function PUT(request: Request) {
     const memoire = memoireList[0];
 
     if (!memoire) {
-      return NextResponse.json({ message: "Mémoire introuvable." }, { status: 404 });
+      return NextResponse.json(
+        { message: "Mémoire introuvable." },
+        { status: 404 },
+      );
     }
 
     const nowIso = new Date().toISOString();
 
     // --- 1. ACTION : REJET / DEMANDE DE CORRECTION ---
     if (action === "reject") {
-      const reasonToSave = rejectionReason || "Document non conforme aux normes.";
+      const reasonToSave =
+        rejectionReason || "Document non conforme aux normes.";
 
       await db
         .update(memoires)
@@ -63,13 +70,16 @@ export async function PUT(request: Request) {
             reason: reasonToSave,
           });
         } catch (emailErr) {
-          console.error("Erreur lors de l'envoi de l'email de rejet :", emailErr);
+          console.error(
+            "Erreur lors de l'envoi de l'email de rejet :",
+            emailErr,
+          );
         }
       }
 
       return NextResponse.json(
         { message: "Notification envoyée pour correction." },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -85,7 +95,7 @@ export async function PUT(request: Request) {
 
       return NextResponse.json(
         { message: "Dépôt physique validé." },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -143,7 +153,10 @@ export async function PUT(request: Request) {
             matricule: memoire.matricule,
             title: memoire.title,
             filiere: memoire.filiere,
+            cycle: memoire.cycle,
+            note: memoire.note,
             academicYear: memoire.academicYear,
+            regime: memoire.regime,
             supervisor: memoire.supervisor,
             internshipLocation: memoire.internshipLocation,
             mention: finalMention,
@@ -151,19 +164,22 @@ export async function PUT(request: Request) {
           },
         });
       } catch (emailErr) {
-        console.error("Erreur lors de l'envoi du mail de validation :", emailErr);
+        console.error(
+          "Erreur lors de l'envoi du mail de validation :",
+          emailErr,
+        );
       }
     }
 
     return NextResponse.json(
       { message: "Mémoire approuvé et PDF envoyé par e-mail.", quitusNumber },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Erreur lors de la validation du mémoire :", error);
     return NextResponse.json(
       { message: "Erreur serveur lors de la validation du mémoire." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
