@@ -334,10 +334,10 @@ export default function Register() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label><i className="fa-solid fa-user"></i> Nom complet</label>
+            <label><i className="fa-solid fa-user"></i> Nom et prénom</label>
             <input 
               type="text" 
-              placeholder="Ex: John Doe" 
+              placeholder="Ex: SOGLO Emérus" 
               required 
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}

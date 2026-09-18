@@ -4,10 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import "../dashboard.css";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
-   
+
   // États pour le menu utilisateur et les infos de l'admin
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInitial, setUserInitial] = useState("A"); // "A" par défaut pour Admin
@@ -15,8 +19,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const adminMenuItems = [
     { name: "Visites", path: "/admin", icon: "fa-user-shield" },
+    { name: "Suivi", path: "/suivi", icon: "fa-users" },
     { name: "Statistiques", path: "/stats", icon: "fa-chart-pie" },
-     { name: "Mémoires", path: "/admin/memoires", icon: "fa-book-open" },
+    { name: "Mémoires", path: "/admin/memoires", icon: "fa-book-open" },
   ];
 
   // Récupérer le nom de l'admin depuis notre API mutualisée /api/auth/me
@@ -32,7 +37,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération des infos admin :", error);
+        console.error(
+          "Erreur lors de la récupération des infos admin :",
+          error,
+        );
       }
     };
     fetchAdminInfo();
@@ -41,6 +49,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Fonction de déconnexion
   const handleLogout = async () => {
     try {
+      await fetch("/api/visits", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (response.ok) {
         router.push("/login");
@@ -51,23 +64,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const closeDropdown = () => setDropdownOpen(false);
-
   return (
     <div className="dash-container">
       {/* SIDEBAR ADMIN - Desktop uniquement */}
-      <aside className="dash-sidebar" >
+      <aside className="dash-sidebar">
         <div className="sidebar-header">
-          <div className="logo-icon-small" style={{ backgroundColor: "#1a5d2b" }}>
-            <i className="fa-solid fa-user-shield" style={{ color: "#fff" }}></i>
+          <div
+            className="logo-icon-small"
+            style={{ backgroundColor: "#1a5d2b" }}
+          >
+            <i
+              className="fa-solid fa-user-shield"
+              style={{ color: "#fff" }}
+            ></i>
           </div>
           <span>SDA Admin</span>
         </div>
-        <nav className="sidebar-links" style={{  color: "#000" }}>
+        <nav className="sidebar-links" style={{ color: "#000" }}>
           {adminMenuItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path} 
+            <Link
+              key={item.path}
+              href={item.path}
               className={pathname === item.path ? "active" : ""}
             >
               <i className={`fa-solid ${item.icon}`}></i> {item.name}
@@ -80,27 +97,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* TOPBAR ADMIN - Desktop & Mobile */}
         <header className="dash-topbar">
           <div className="topbar-title" style={{ fontWeight: "bold" }}>
-             {adminMenuItems.find(i => i.path === pathname)?.name || "Administration"}
+            {adminMenuItems.find((i) => i.path === pathname)?.name ||
+              "Administration"}
           </div>
-          
+
           {/* Zone Utilisateur avec Dropdown */}
           <div className="topbar-user-wrapper" style={{ position: "relative" }}>
-            <div 
-              className="topbar-user" 
-              onClick={() => setDropdownOpen(!dropdownOpen)} 
+            <div
+              className="topbar-user"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
               style={{ cursor: "pointer" }}
             >
-              <span className="user-initials" >{userInitial}</span>
+              <span className="user-initials">{userInitial}</span>
             </div>
- 
+
             {/* Menu Déroulant (Dropdown) */}
             {dropdownOpen && (
               <div className="user-dropdown-menu">
                 <div className="dropdown-user-info">
-                  <p className="dropdown-name">{userFullName || "Administrateur"}</p>
+                  <p className="dropdown-name">
+                    {userFullName || "Administrateur"}
+                  </p>
                 </div>
                 <hr className="dropdown-divider" />
-                <button onClick={handleLogout} className="dropdown-item logout-btn">
+                <button
+                  onClick={handleLogout}
+                  className="dropdown-item logout-btn"
+                >
                   <i className="fa-solid fa-right-from-bracket"></i> Déconnexion
                 </button>
               </div>
@@ -109,16 +132,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* CONTENU DE LA PAGE */}
-        <section className="dash-content">
-          {children}
-        </section>
+        <section className="dash-content">{children}</section>
 
         {/* TAB BAR - Mobile uniquement */}
         <nav className="mobile-tabbar">
           {adminMenuItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path} 
+            <Link
+              key={item.path}
+              href={item.path}
               className={pathname === item.path ? "active" : ""}
             >
               <i className={`fa-solid ${item.icon}`}></i>

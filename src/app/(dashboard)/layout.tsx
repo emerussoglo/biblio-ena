@@ -4,10 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import "../dashboard.css";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
-  
+
   // États pour le menu utilisateur et les infos utilisateur
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInitial, setUserInitial] = useState("U"); // "U" par défaut si chargement
@@ -43,6 +47,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Fonction de déconnexion
   const handleLogout = async () => {
     try {
+      await fetch("/api/visits", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (response.ok) {
         router.push("/login");
@@ -61,14 +70,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* SIDEBAR - Desktop uniquement */}
       <aside className="dash-sidebar">
         <div className="sidebar-header">
-          <div className="logo-icon-small"><i className="fa-solid fa-book-bookmark"></i></div>
-          <span>Bibliotèque  ENA</span>
+          <div className="logo-icon-small">
+            <i className="fa-solid fa-book-bookmark"></i>
+          </div>
+          <span>Bibliotèque ENA</span>
         </div>
         <nav className="sidebar-links">
           {menuItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path} 
+            <Link
+              key={item.path}
+              href={item.path}
               className={pathname === item.path ? "active" : ""}
             >
               <i className={`fa-solid ${item.icon}`}></i> {item.name}
@@ -81,33 +92,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* TOPBAR - Desktop & Mobile */}
         <header className="dash-topbar">
           <div className="topbar-title">
-             {menuItems.find(i => i.path === pathname)?.name || "Dashboard"}
+            {menuItems.find((i) => i.path === pathname)?.name || "Dashboard"}
           </div>
-          
+
           {/* Zone Utilisateur avec Dropdown */}
           <div className="topbar-user-wrapper" style={{ position: "relative" }}>
-            <div 
-              className="topbar-user" 
-              onClick={() => setDropdownOpen(!dropdownOpen)} 
+            <div
+              className="topbar-user"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
               style={{ cursor: "pointer" }}
             >
               <span className="user-initials">{userInitial}</span>
             </div>
- 
+
             {/* Menu Déroulant (Dropdown) */}
             {dropdownOpen && (
               <div className="user-dropdown-menu">
                 <div className="dropdown-user-info">
-                  <p className="dropdown-name">{userFullName || "Utilisateur"}</p>
+                  <p className="dropdown-name">
+                    {userFullName || "Utilisateur"}
+                  </p>
                 </div>
                 <hr className="dropdown-divider" />
-                <Link href="/" className="dropdown-item" onClick={closeDropdown}>
+                <Link
+                  href="/"
+                  className="dropdown-item"
+                  onClick={closeDropdown}
+                >
                   <i className="fa-solid fa-house"></i> Accueil du site
                 </Link>
-                <Link href="/profil" className="dropdown-item" onClick={closeDropdown}>
+                <Link
+                  href="/profil"
+                  className="dropdown-item"
+                  onClick={closeDropdown}
+                >
                   <i className="fa-solid fa-user"></i> Mon Profil
                 </Link>
-                <button onClick={handleLogout} className="dropdown-item logout-btn">
+                <button
+                  onClick={handleLogout}
+                  className="dropdown-item logout-btn"
+                >
                   <i className="fa-solid fa-right-from-bracket"></i> Déconnexion
                 </button>
               </div>
@@ -116,16 +140,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* CONTENU DE LA PAGE */}
-        <section className="dash-content">
-          {children}
-        </section>
+        <section className="dash-content">{children}</section>
 
         {/* TAB BAR - Mobile uniquement */}
         <nav className="mobile-tabbar">
           {menuItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path} 
+            <Link
+              key={item.path}
+              href={item.path}
               className={pathname === item.path ? "active" : ""}
             >
               <i className={`fa-solid ${item.icon}`}></i>

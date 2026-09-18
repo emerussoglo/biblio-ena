@@ -11,7 +11,11 @@ export default function SubmitMemoirePage() {
     fullName: "", // Nom et Prénom unifiés
     matricule: "",
     filiere: "",
+    cycle: "",
+    note: "",
+    mention: "",
     academicYear: "2025-2026",
+    regime: "",
     supervisor: "",
     internshipLocation: "",
     email: "",
@@ -21,12 +25,19 @@ export default function SubmitMemoirePage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error" | ""; msg: string }>({
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "";
+    msg: string;
+  }>({
     type: "",
     msg: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -35,11 +46,17 @@ export default function SubmitMemoirePage() {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       if (selectedFile.type !== "application/pdf") {
-        setStatus({ type: "error", msg: "Seuls les fichiers au format PDF sont acceptés." });
+        setStatus({
+          type: "error",
+          msg: "Seuls les fichiers au format PDF sont acceptés.",
+        });
         return;
       }
       if (selectedFile.size > 20 * 1024 * 1024) {
-        setStatus({ type: "error", msg: "La taille du fichier ne doit pas dépasser 20 Mo." });
+        setStatus({
+          type: "error",
+          msg: "La taille du fichier ne doit pas dépasser 20 Mo.",
+        });
         return;
       }
       setFile(selectedFile);
@@ -63,11 +80,17 @@ export default function SubmitMemoirePage() {
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === "application/pdf" && droppedFile.size <= 20 * 1024 * 1024) {
+      if (
+        droppedFile.type === "application/pdf" &&
+        droppedFile.size <= 20 * 1024 * 1024
+      ) {
         setFile(droppedFile);
         setStatus({ type: "", msg: "" });
       } else {
-        setStatus({ type: "error", msg: "Fichier invalide (PDF uniquement, max 20 Mo)." });
+        setStatus({
+          type: "error",
+          msg: "Fichier invalide (PDF uniquement, max 20 Mo).",
+        });
       }
     }
   };
@@ -75,7 +98,10 @@ export default function SubmitMemoirePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      setStatus({ type: "error", msg: "Veuillez joindre le fichier PDF de votre mémoire." });
+      setStatus({
+        type: "error",
+        msg: "Veuillez joindre le fichier PDF de votre mémoire.",
+      });
       return;
     }
 
@@ -114,15 +140,25 @@ export default function SubmitMemoirePage() {
         fullName: "",
         matricule: "",
         filiere: "",
+        cycle: "",
+        note: "",
+        mention: "",
         academicYear: "2025-2026",
+        regime: "",
         supervisor: "",
         internshipLocation: "",
         email: "",
         phone: "",
       });
       setFile(null);
-    } catch (err: any) {
-      setStatus({ type: "error", msg: err.message || "Impossible d'envoyer le formulaire." });
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        msg:
+          err instanceof Error
+            ? err.message
+            : "Impossible d'envoyer le formulaire.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -132,12 +168,21 @@ export default function SubmitMemoirePage() {
     <div className="submit-memoire-wrapper">
       <div className="submit-header">
         <h1>Dépôt de mémoire en ligne</h1>
-        <p>Renseignez les métadonnées et téléversez votre travail au format PDF (max. 20 Mo).</p>
+        <p>
+          Renseignez les métadonnées et téléversez votre travail au format PDF
+          (max. 20 Mo).
+        </p>
       </div>
 
       {status.msg && (
         <div className={`status-banner ${status.type}`}>
-          <i className={status.type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-triangle-exclamation"}></i>
+          <i
+            className={
+              status.type === "success"
+                ? "fa-solid fa-circle-check"
+                : "fa-solid fa-triangle-exclamation"
+            }
+          ></i>
           <span>{status.msg}</span>
         </div>
       )}
@@ -149,7 +194,7 @@ export default function SubmitMemoirePage() {
             <span className="step-num">1</span>
             <div>
               <h2>Métadonnées du mémoire</h2>
-              <p>Informations relatives à votre sujet d'étude</p>
+              <p>Informations relatives à votre sujet d&apos;étude</p>
             </div>
           </div>
 
@@ -212,7 +257,7 @@ export default function SubmitMemoirePage() {
           <div className="card-title">
             <span className="step-num">2</span>
             <div>
-              <h2>Informations de l'étudiant</h2>
+              <h2>Informations de l&apos;étudiant</h2>
               <p>Vos coordonnées et détails académiques</p>
             </div>
           </div>
@@ -258,6 +303,61 @@ export default function SubmitMemoirePage() {
             </div>
 
             <div className="form-group">
+              <label htmlFor="cycle">
+                Cycle <span className="req">*</span>
+              </label>
+              <select
+                id="cycle"
+                name="cycle"
+                value={formData.cycle}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Sélectionner le cycle</option>
+                <option value="I">Cycle I</option>
+                <option value="II">Cycle II</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="note">
+                Note obtenue <span className="req">*</span>
+              </label>
+              <input
+                type="number"
+                id="note"
+                name="note"
+                min="0"
+                max="20"
+                step="1"
+                placeholder="Ex: 15"
+                value={formData.note}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="mention">
+                Mention <span className="req">*</span>
+              </label>
+              <select
+                id="mention"
+                name="mention"
+                value={formData.mention}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Sélectionner la mention</option>
+                <option value="Passable">Passable</option>
+                <option value="Assez bien">Assez bien</option>
+                <option value="Bien">Bien</option>
+                <option value="Très bien">Très bien</option>
+                <option value="Excellent">Excellent</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="academicYear">Année académique</label>
               <input
                 type="text"
@@ -267,6 +367,23 @@ export default function SubmitMemoirePage() {
                 value={formData.academicYear}
                 onChange={handleChange}
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="regime">
+                Régime <span className="req">*</span>
+              </label>
+              <select
+                id="regime"
+                name="regime"
+                value={formData.regime}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Sélectionner le régime</option>
+                <option value="journee">Journée</option>
+                <option value="soir">Soir</option>
+              </select>
             </div>
 
             <div className="form-group">
@@ -303,7 +420,9 @@ export default function SubmitMemoirePage() {
                 value={formData.email}
                 onChange={handleChange}
               />
-              <span className="field-hint">Une copie du quitus sera envoyée à cette adresse.</span>
+              <span className="field-hint">
+                Une copie du quitus sera envoyée à cette adresse.
+              </span>
             </div>
 
             <div className="form-group">
@@ -316,7 +435,9 @@ export default function SubmitMemoirePage() {
                 value={formData.phone}
                 onChange={handleChange}
               />
-              <span className="field-hint">Pour la réception du lien par message.</span>
+              <span className="field-hint">
+                Pour la réception du lien par message.
+              </span>
             </div>
           </div>
         </section>
@@ -334,7 +455,8 @@ export default function SubmitMemoirePage() {
           <div className="form-grid">
             <div className="form-group full-width">
               <label>
-                Mémoire numérique (PDF uniquement, max 20 Mo) <span className="req">*</span>
+                Mémoire numérique (PDF uniquement, max 20 Mo){" "}
+                <span className="req">*</span>
               </label>
 
               <div
@@ -358,7 +480,8 @@ export default function SubmitMemoirePage() {
                       <i className="fa-solid fa-cloud-arrow-up"></i>
                     </div>
                     <p className="drop-title">
-                      <span>Cliquez pour parcourir</span> ou glissez-déposez le PDF ici
+                      <span>Cliquez pour parcourir</span> ou glissez-déposez le
+                      PDF ici
                     </p>
                     <p className="drop-sub">Taille maximale : 20 Mo</p>
                   </label>
@@ -367,7 +490,9 @@ export default function SubmitMemoirePage() {
                     <i className="fa-solid fa-file-pdf pdf-icon"></i>
                     <div className="file-info">
                       <span className="file-name">{file.name}</span>
-                      <span className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} Mo</span>
+                      <span className="file-size">
+                        {(file.size / (1024 * 1024)).toFixed(2)} Mo
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -384,7 +509,11 @@ export default function SubmitMemoirePage() {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="btn-submit-memoire" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="btn-submit-memoire"
+              disabled={isSubmitting}
+            >
               <i className="fa-solid fa-paper-plane"></i>
               {isSubmitting ? "Envoi en cours..." : "Déposer le mémoire"}
             </button>

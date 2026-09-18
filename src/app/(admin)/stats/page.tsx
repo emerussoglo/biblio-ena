@@ -84,13 +84,13 @@ export default function StatsPage() {
         <div style={cardStyle}>
           <div style={{ color: "#d97706", fontSize: "20px" }}><i className="fa-solid fa-book"></i></div>
           <span style={kpiValueStyle}>{stats.kpis.totalMemoires}</span>
-          <span style={kpiLabelStyle}>Mémoires Déposés</span>
+          <span style={kpiLabelStyle}>Mémoires Soumis</span>
         </div>
 
         <div style={cardStyle}>
           <div style={{ color: "#059669", fontSize: "20px" }}><i className="fa-solid fa-certificate"></i></div>
           <span style={kpiValueStyle}>{stats.kpis.totalQuitus}</span>
-          <span style={kpiLabelStyle}>Quitus Validés</span>
+          <span style={kpiLabelStyle}>Mémoires Validés</span>
         </div>
       </div>
 

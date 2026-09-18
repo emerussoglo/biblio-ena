@@ -60,8 +60,12 @@ export default function AdminVisitsPage() {
   const [error, setError] = useState<string>("");
 
   // Filtres
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterUserType, setFilterUserType] = useState<string>("all");
   const [filterMotif, setFilterMotif] = useState<string>("all");
+  const [filterSex, setFilterSex] = useState<string>("all");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
 
   const motifLabels: Record<string, string> = {
     etudes: "Études",
@@ -100,9 +104,12 @@ export default function AdminVisitsPage() {
   };
 
   useEffect(() => {
-    fetchAdminData();
+    const initialFetch = window.setTimeout(fetchAdminData, 0);
     const interval = setInterval(fetchAdminData, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialFetch);
+      clearInterval(interval);
+    };
   }, []);
 
   const formatDate = (isoDate: string): string => {
@@ -114,9 +121,40 @@ export default function AdminVisitsPage() {
 
   // --- FILTRAGE DYNAMIQUE ---
   const filteredVisits = dataVisits.filter((v) => {
-    const matchType = filterUserType === "all" || v.user.userType === filterUserType;
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const searchableFields = [
+      v.user.fullName,
+      userTypeLabels[v.user.userType] || v.user.userType,
+      v.user.school,
+      v.user.filiere,
+    ]
+      .join(" ")
+      .toLowerCase();
+    const arrivalMinutes = v.arrivalAt.split(":").map(Number);
+    const arrivalTimeInMinutes = arrivalMinutes[0] * 60 + arrivalMinutes[1];
+    const startMinutes = startTime
+      ? Number(startTime.split(":")[0]) * 60 + Number(startTime.split(":")[1])
+      : null;
+    const endMinutes = endTime
+      ? Number(endTime.split(":")[0]) * 60 + Number(endTime.split(":")[1])
+      : null;
+    const matchSearch =
+      !normalizedSearch || searchableFields.includes(normalizedSearch);
+    const matchType =
+      filterUserType === "all" || v.user.userType === filterUserType;
     const matchMotif = filterMotif === "all" || v.motif === filterMotif;
-    return matchType && matchMotif;
+    const matchSex = filterSex === "all" || v.user.sex === filterSex;
+    const matchStart =
+      startMinutes === null || arrivalTimeInMinutes >= startMinutes;
+    const matchEnd = endMinutes === null || arrivalTimeInMinutes <= endMinutes;
+    return (
+      matchSearch &&
+      matchType &&
+      matchMotif &&
+      matchSex &&
+      matchStart &&
+      matchEnd
+    );
   });
 
   // --- GÉNÉRATION DU RAPPORT PDF STRUCTURÉ PAR ÉCOLE ---
@@ -124,7 +162,8 @@ export default function AdminVisitsPage() {
     if (typeof window === "undefined") return;
 
     const html2pdfModule = await import("html2pdf.js");
-    const html2pdf = html2pdfModule.default as unknown as () => Html2PdfInstance;
+    const html2pdf =
+      html2pdfModule.default as unknown as () => Html2PdfInstance;
 
     // Structure : École -> { M, F, filieres: { Filiere -> { M, F } } }
     const statsBySchool: Record<string, SchoolStat> = {};
@@ -140,8 +179,14 @@ export default function AdminVisitsPage() {
       else totalFemmes++;
 
       // 1. École et Filière imbriquée
-      const schoolName = v.user.school && v.user.school.trim() !== "" ? v.user.school : "Non spécifiée";
-      const filiereName = v.user.filiere && v.user.filiere.trim() !== "" ? v.user.filiere : "Non spécifiée";
+      const schoolName =
+        v.user.school && v.user.school.trim() !== ""
+          ? v.user.school
+          : "Non spécifiée";
+      const filiereName =
+        v.user.filiere && v.user.filiere.trim() !== ""
+          ? v.user.filiere
+          : "Non spécifiée";
 
       if (!statsBySchool[schoolName]) {
         statsBySchool[schoolName] = { M: 0, F: 0, filieres: {} };
@@ -154,8 +199,10 @@ export default function AdminVisitsPage() {
       statsBySchool[schoolName].filieres[filiereName][sex]++;
 
       // 2. Statut / Catégorie
-      const typeLabel = userTypeLabels[v.user.userType] || v.user.userType || "Autre";
-      if (!statsByUserType[typeLabel]) statsByUserType[typeLabel] = { M: 0, F: 0 };
+      const typeLabel =
+        userTypeLabels[v.user.userType] || v.user.userType || "Autre";
+      if (!statsByUserType[typeLabel])
+        statsByUserType[typeLabel] = { M: 0, F: 0 };
       statsByUserType[typeLabel][sex]++;
 
       // 3. Motif
@@ -164,7 +211,9 @@ export default function AdminVisitsPage() {
     });
 
     // Avis & Satisfaction
-    const ratedVisits = visitsOfTheDay.filter((v) => v.satisfactionRating !== null);
+    const ratedVisits = visitsOfTheDay.filter(
+      (v) => v.satisfactionRating !== null,
+    );
     const avgRating = ratedVisits.length
       ? (
           ratedVisits.reduce((acc, v) => acc + (v.satisfactionRating || 0), 0) /
@@ -173,12 +222,13 @@ export default function AdminVisitsPage() {
       : "N/A";
 
     const negativeReviews = visitsOfTheDay.filter(
-      (v) => v.satisfactionRating !== null && v.satisfactionRating <= 2
+      (v) => v.satisfactionRating !== null && v.satisfactionRating <= 2,
     );
 
     const reportContainer = document.createElement("div");
     reportContainer.style.padding = "20px";
-    reportContainer.style.fontFamily = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    reportContainer.style.fontFamily =
+      "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
     reportContainer.style.color = "#0f172a";
 
     // Génération des lignes du tableau par École et ses sous-filières
@@ -306,7 +356,7 @@ export default function AdminVisitsPage() {
             <tr>
               <td style="border: 1px solid #cbd5e1; padding: 5px;">${m}</td>
               <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">${statsByMotif[m]}</td>
-            </tr>`
+            </tr>`,
             )
             .join("")}
         </tbody>
@@ -334,7 +384,7 @@ export default function AdminVisitsPage() {
               <tr>
                 <td style="border: 1px solid #fecaca; padding: 5px; font-weight: bold; color: #dc2626;">${r.satisfactionRating} / 5</td>
                 <td style="border: 1px solid #fecaca; padding: 5px;">${r.satisfactionReason || "Aucun motif précisé"}</td>
-              </tr>`
+              </tr>`,
               )
               .join("")}
           </tbody>
@@ -354,12 +404,15 @@ export default function AdminVisitsPage() {
   };
 
   // Regroupement par date
-  const visitsByDay = filteredVisits.reduce((groups: Record<string, VisitRow[]>, visit) => {
-    const date = visit.date;
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(visit);
-    return groups;
-  }, {});
+  const visitsByDay = filteredVisits.reduce(
+    (groups: Record<string, VisitRow[]>, visit) => {
+      const date = visit.date;
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(visit);
+      return groups;
+    },
+    {},
+  );
 
   if (loading) {
     return (
@@ -367,47 +420,189 @@ export default function AdminVisitsPage() {
         <p>Chargement des données de statistiques...</p>
       </div>
     );
-  }  
+  }
 
   return (
     <div style={{ padding: "20px" }}>
+      <div
+        style={{
+          backgroundColor: "#fff",
+          padding: "16px",
+          borderRadius: "8px",
+          border: "1px solid #e2e8f0",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "12px",
+          }}
+        >
+          <i
+            className="fa-solid fa-magnifying-glass"
+            style={{ color: "#0284c7" }}
+          ></i>
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Rechercher par nom, prénom, statut, école ou filière"
+            style={{ ...selectStyle, flex: 1, minWidth: "220px" }}
+          />
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <select
+            value={filterUserType}
+            onChange={(event) => setFilterUserType(event.target.value)}
+            style={selectStyle}
+          >
+            <option value="all">Tous les statuts</option>
+            {Object.entries(userTypeLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMotif}
+            onChange={(event) => setFilterMotif(event.target.value)}
+            style={selectStyle}
+          >
+            <option value="all">Tous les motifs</option>
+            {Object.entries(motifLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterSex}
+            onChange={(event) => setFilterSex(event.target.value)}
+            style={selectStyle}
+          >
+            <option value="all">Tous les sexes</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+          <label style={filterLabelStyle}>
+            De{" "}
+            <input
+              type="time"
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+              style={selectStyle}
+            />
+          </label>
+          <label style={filterLabelStyle}>
+            À{" "}
+            <input
+              type="time"
+              value={endTime}
+              onChange={(event) => setEndTime(event.target.value)}
+              style={selectStyle}
+            />
+          </label>
+        </div>
+        <p style={{ color: "#64748b", fontSize: "13px", margin: "12px 0 0" }}>
+          {filteredVisits.length} visite(s) correspondent aux critères
+          sélectionnés.
+          {(startTime || endTime) &&
+            ` Intervalle horaire : ${startTime || "00:00"} à ${endTime || "23:59"}.`}
+        </p>
+      </div>
       {error && (
-        <div style={{ color: "#dc2626", backgroundColor: "#fef2f2", padding: "12px", borderRadius: "6px", border: "1px solid #fecaca", marginBottom: "20px" }}>
+        <div
+          style={{
+            color: "#dc2626",
+            backgroundColor: "#fef2f2",
+            padding: "12px",
+            borderRadius: "6px",
+            border: "1px solid #fecaca",
+            marginBottom: "20px",
+          }}
+        >
           {error}
         </div>
       )}
 
-      
-
       {/* REGISTRES PAR JOURNÉE */}
       {Object.keys(visitsByDay).length === 0 ? (
-        <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px", backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+        <div
+          style={{
+            textAlign: "center",
+            color: "#94a3b8",
+            padding: "40px",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            border: "1px solid #e2e8f0",
+          }}
+        >
           Aucun enregistrement correspondant aux filtres.
         </div>
       ) : (
         Object.keys(visitsByDay).map((date) => {
           const dayVisits = visitsByDay[date];
           return (
-            <div key={date} style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px", marginBottom: "15px" }}>
+            <div
+              key={date}
+              style={{
+                backgroundColor: "#fff",
+                padding: "20px",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+                marginBottom: "20px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderBottom: "1px solid #f1f5f9",
+                  paddingBottom: "12px",
+                  marginBottom: "15px",
+                }}
+              >
                 <div>
                   <h3 style={{ margin: 0, fontSize: "16px", color: "#0f172a" }}>
                     Journée du {formatDate(date)}
                   </h3>
-                  <span style={{ fontSize: "12px", color: "#64748b" }}>{dayVisits.length} enregistrement(s)</span>
+                  <span style={{ fontSize: "12px", color: "#64748b" }}>
+                    {dayVisits.length} enregistrement(s)
+                  </span>
                 </div>
                 <button
                   onClick={() => downloadDailyPDF(date, dayVisits)}
-                  style={{ padding: "8px 14px", backgroundColor: "#dc2626", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+                  style={{
+                    padding: "8px 14px",
+                    backgroundColor: "#dc2626",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "13px",
+                  }}
                 >
                   Télécharger Rapport PDF
                 </button>
               </div>
 
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "13px",
+                  }}
+                >
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", textAlign: "left" }}>
+                    <tr
+                      style={{ backgroundColor: "#f8fafc", textAlign: "left" }}
+                    >
                       <th style={thStyle}>Ticket</th>
                       <th style={thStyle}>Nom & Prénom</th>
                       <th style={thStyle}>Statut</th>
@@ -421,36 +616,97 @@ export default function AdminVisitsPage() {
                   </thead>
                   <tbody>
                     {dayVisits.map((visite) => (
-                      <tr key={visite.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                        <td style={{ ...tdStyle, fontWeight: "bold", color: "#0284c7" }}>{visite.ticketNumber}</td>
-                        <td style={{ ...tdStyle, fontWeight: "600" }}>{visite.user.fullName}</td>
-                        <td style={tdStyle}>{userTypeLabels[visite.user.userType] || visite.user.userType}</td>
+                      <tr
+                        key={visite.id}
+                        style={{ borderBottom: "1px solid #f1f5f9" }}
+                      >
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: "bold",
+                            color: "#0284c7",
+                          }}
+                        >
+                          {visite.ticketNumber}
+                        </td>
+                        <td style={{ ...tdStyle, fontWeight: "600" }}>
+                          {visite.user.fullName}
+                        </td>
+                        <td style={tdStyle}>
+                          {userTypeLabels[visite.user.userType] ||
+                            visite.user.userType}
+                        </td>
                         <td style={tdStyle}>{visite.user.school}</td>
                         <td style={tdStyle}>{visite.user.filiere}</td>
-                        <td style={{ ...tdStyle, textAlign: "center", fontWeight: "bold" }}>{visite.user.sex}</td>
-                        <td style={tdStyle}>{motifLabels[visite.motif] || visite.motif}</td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: "center",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {visite.user.sex}
+                        </td>
                         <td style={tdStyle}>
-                          <span style={{ color: "#16a34a", fontWeight: "600" }}>{visite.arrivalAt}</span> -{" "}
+                          {motifLabels[visite.motif] || visite.motif}
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{ color: "#16a34a", fontWeight: "600" }}>
+                            {visite.arrivalAt}
+                          </span>{" "}
+                          -{" "}
                           {visite.departureAt ? (
-                            <span style={{ color: "#dc2626", fontWeight: "600" }}>{visite.departureAt}</span>
+                            <span
+                              style={{ color: "#dc2626", fontWeight: "600" }}
+                            >
+                              {visite.departureAt}
+                            </span>
                           ) : (
-                            <span style={{ color: "#d97706", backgroundColor: "#fef3c7", padding: "2px 6px", borderRadius: "10px", fontSize: "11px" }}>En cours</span>
+                            <span
+                              style={{
+                                color: "#d97706",
+                                backgroundColor: "#fef3c7",
+                                padding: "2px 6px",
+                                borderRadius: "10px",
+                                fontSize: "11px",
+                              }}
+                            >
+                              En cours
+                            </span>
                           )}
                         </td>
                         <td style={tdStyle}>
                           {visite.satisfactionRating ? (
                             <div>
-                              <span style={{ fontWeight: "bold", color: visite.satisfactionRating <= 2 ? "#dc2626" : "#16a34a" }}>
+                              <span
+                                style={{
+                                  fontWeight: "bold",
+                                  color:
+                                    visite.satisfactionRating <= 2
+                                      ? "#dc2626"
+                                      : "#16a34a",
+                                }}
+                              >
                                 {visite.satisfactionRating}/5
                               </span>
                               {visite.satisfactionReason && (
-                                <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: "#64748b" }}>
-                                  "{visite.satisfactionReason}"
+                                <p
+                                  style={{
+                                    margin: "2px 0 0 0",
+                                    fontSize: "11px",
+                                    color: "#64748b",
+                                  }}
+                                >
+                                  &quot;{visite.satisfactionReason}&quot;
                                 </p>
                               )}
                             </div>
                           ) : (
-                            <span style={{ color: "#94a3b8", fontSize: "11px" }}>—</span>
+                            <span
+                              style={{ color: "#94a3b8", fontSize: "11px" }}
+                            >
+                              —
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -484,4 +740,13 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = {
   padding: "10px",
   color: "#1e293b",
+};
+
+const filterLabelStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  color: "#475569",
+  fontSize: "13px",
+  fontWeight: 600,
 };

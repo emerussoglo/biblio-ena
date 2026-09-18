@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 import { visits, users } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { jwtVerify } from "jose";
+import { autoCloseExpiredVisits, getBeninDateTime } from "@/lib/visits";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_key_production"
+  process.env.JWT_SECRET || "fallback_secret_key_production",
 );
 
 export async function GET() {
@@ -22,6 +23,9 @@ export async function GET() {
     if (payload.role !== "admin") {
       return NextResponse.json({ message: "Accès interdit." }, { status: 403 });
     }
+
+    const { dateString, isPastClosingTime } = getBeninDateTime();
+    await autoCloseExpiredVisits(dateString, isPastClosingTime);
 
     const rawList = await db
       .select({
@@ -51,8 +55,14 @@ export async function GET() {
       user: {
         ...item.user,
         sex: item.user.sex || "M",
-        school: item.user.school && item.user.school.trim() !== "" ? item.user.school : "Non spécifiée",
-        filiere: item.user.filiere && item.user.filiere.trim() !== "" ? item.user.filiere : "Non spécifiée",
+        school:
+          item.user.school && item.user.school.trim() !== ""
+            ? item.user.school
+            : "Non spécifiée",
+        filiere:
+          item.user.filiere && item.user.filiere.trim() !== ""
+            ? item.user.filiere
+            : "Non spécifiée",
         phone: item.user.phone || "",
       },
     }));

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_key_production"
+  process.env.JWT_SECRET || "fallback_secret_key_production",
 );
 
 export async function middleware(request: NextRequest) {
@@ -19,7 +19,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/catalogue") ||
     pathname.startsWith("/profil") ||
     pathname.startsWith("/memoires") ||
-    pathname.startsWith("/stats")
+    pathname.startsWith("/stats") ||
+    pathname.startsWith("/suivi")
   ) {
     if (!token) {
       // Redirection vers le login si aucun token n'est trouvé
@@ -31,7 +32,12 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(token, JWT_SECRET);
 
       // Sécurité supplémentaire : Si la route commence par /admin mais que le rôle n'est pas "admin"
-      if (pathname.startsWith("/admin") && payload.role !== "admin") {
+      if (
+        (pathname.startsWith("/admin") ||
+          pathname.startsWith("/stats") ||
+          pathname.startsWith("/suivi")) &&
+        payload.role !== "admin"
+      ) {
         return NextResponse.redirect(new URL("/dashboard", request.url)); // Redirige les étudiants vers leur dashboard standard
       }
 
@@ -65,6 +71,7 @@ export const config = {
     "/dashboard/:path*",
     "/profil/:path*",
     "/stats/:path*",
+    "/suivi/:path*",
     "/memoires/:path*",
     "/login",
     "/register",

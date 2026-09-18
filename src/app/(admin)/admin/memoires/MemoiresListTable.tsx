@@ -11,7 +11,10 @@ export interface Memoire {
   fullName: string;
   matricule: string | null;
   filiere: string | null;
+  cycle: "I" | "II" | null;
+  note: number | null;
   academicYear: string | null;
+  regime: "journee" | "soir" | null;
   supervisor: string | null;
   internshipLocation: string | null;
   email: string | null;
@@ -46,13 +49,18 @@ export default function MemoiresListTable({
   formatDate,
 }: MemoiresListTableProps) {
   const [selectedMemoire, setSelectedMemoire] = useState<Memoire | null>(null);
-  
+
   // Modale d'approbation (Validation directe)
-  const [approvingMemoire, setApprovingMemoire] = useState<Memoire | null>(null);
-  const [isSubmittingApprove, setIsSubmittingApprove] = useState<boolean>(false);
+  const [approvingMemoire, setApprovingMemoire] = useState<Memoire | null>(
+    null,
+  );
+  const [isSubmittingApprove, setIsSubmittingApprove] =
+    useState<boolean>(false);
 
   // Modale de rejet / demande de corrections
-  const [rejectingMemoire, setRejectingMemoire] = useState<Memoire | null>(null);
+  const [rejectingMemoire, setRejectingMemoire] = useState<Memoire | null>(
+    null,
+  );
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isSubmittingReject, setIsSubmittingReject] = useState<boolean>(false);
 
@@ -123,8 +131,12 @@ export default function MemoiresListTable({
           <thead>
             <tr>
               <th>Titre / Sujet</th>
-              <th>Étudiant</th>
+              <th>Nom et prénom</th>
               <th>Filière</th>
+              <th>Cycle</th>
+              <th>Note</th>
+              <th>Mention</th>
+              <th>Régime</th>
               <th>Année</th>
               <th>Date de dépôt</th>
               <th>Fichier</th>
@@ -146,6 +158,16 @@ export default function MemoiresListTable({
                   </div>
                 </td>
                 <td>{item.filiere || "-"}</td>
+                <td>{item.cycle || "-"}</td>
+                <td>{item.note ?? "-"}/20</td>
+                <td>{item.mention || "-"}</td>
+                <td>
+                  {item.regime === "journee"
+                    ? "Journée"
+                    : item.regime === "soir"
+                      ? "Soir"
+                      : "-"}
+                </td>
                 <td>{item.year || "-"}</td>
                 <td>{formatDate(item.submissionDate || item.createdAt)}</td>
                 <td>
@@ -161,7 +183,13 @@ export default function MemoiresListTable({
                   </a>
                 </td>
                 <td>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}
+                  >
                     <button
                       className="btn-action view-btn"
                       onClick={() => setSelectedMemoire(item)}
@@ -272,7 +300,10 @@ export default function MemoiresListTable({
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Détails du mémoire</h2>
-              <button className="btn-close" onClick={() => setSelectedMemoire(null)}>
+              <button
+                className="btn-close"
+                onClick={() => setSelectedMemoire(null)}
+              >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -280,12 +311,55 @@ export default function MemoiresListTable({
               <div className="detail-section">
                 <h3>Informations Académiques</h3>
                 <div className="detail-grid">
-                  <div><label>Étudiant :</label><p>{selectedMemoire.fullName}</p></div>
-                  <div><label>Matricule :</label><p>{selectedMemoire.matricule || "Non renseigné"}</p></div>
-                  <div><label>Filière :</label><p>{selectedMemoire.filiere || "Non renseignée"}</p></div>
-                  <div><label>Année académique :</label><p>{selectedMemoire.academicYear || "Non renseignée"}</p></div>
-                  <div><label>Email :</label><p>{selectedMemoire.email || "Non renseigné"}</p></div>
-                  <div><label>Téléphone :</label><p>{selectedMemoire.phone || "Non renseigné"}</p></div>
+                  <div>
+                    <label>Nom et prénom :</label>
+                    <p>{selectedMemoire.fullName}</p>
+                  </div>
+                  <div>
+                    <label>Matricule :</label>
+                    <p>{selectedMemoire.matricule || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Filière :</label>
+                    <p>{selectedMemoire.filiere || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Cycle :</label>
+                    <p>{selectedMemoire.cycle || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Note :</label>
+                    <p>
+                      {selectedMemoire.note ?? "Non renseignée"}
+                      {selectedMemoire.note !== null ? "/20" : ""}
+                    </p>
+                  </div>
+                  <div>
+                    <label>Mention :</label>
+                    <p>{selectedMemoire.mention || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Année académique :</label>
+                    <p>{selectedMemoire.academicYear || "Non renseignée"}</p>
+                  </div>
+                  <div>
+                    <label>Régime :</label>
+                    <p>
+                      {selectedMemoire.regime === "journee"
+                        ? "Journée"
+                        : selectedMemoire.regime === "soir"
+                          ? "Soir"
+                          : "Non renseigné"}
+                    </p>
+                  </div>
+                  <div>
+                    <label>Email :</label>
+                    <p>{selectedMemoire.email || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Téléphone :</label>
+                    <p>{selectedMemoire.phone || "Non renseigné"}</p>
+                  </div>
                 </div>
               </div>
               <hr />
@@ -297,12 +371,25 @@ export default function MemoiresListTable({
                 </div>
                 <div className="detail-field">
                   <label>Résumé :</label>
-                  <p className="abstract-text">{selectedMemoire.abstract || "Aucun résumé."}</p>
+                  <p className="abstract-text">
+                    {selectedMemoire.abstract || "Aucun résumé."}
+                  </p>
                 </div>
                 <div className="detail-grid">
-                  <div><label>Directeur de mémoire:</label><p>{selectedMemoire.supervisor || "Non renseigné"}</p></div>
-                  <div><label>Lieu de stage :</label><p>{selectedMemoire.internshipLocation || "Non renseigné"}</p></div>
-                  <div><label>Mots-clés :</label><p>{selectedMemoire.keywords || "Aucun"}</p></div>
+                  <div>
+                    <label>Directeur de mémoire:</label>
+                    <p>{selectedMemoire.supervisor || "Non renseigné"}</p>
+                  </div>
+                  <div>
+                    <label>Lieu de stage :</label>
+                    <p>
+                      {selectedMemoire.internshipLocation || "Non renseigné"}
+                    </p>
+                  </div>
+                  <div>
+                    <label>Mots-clés :</label>
+                    <p>{selectedMemoire.keywords || "Aucun"}</p>
+                  </div>
                 </div>
               </div>
               <hr />
@@ -311,12 +398,22 @@ export default function MemoiresListTable({
                 <div className="file-box">
                   <i className="fa-solid fa-file-pdf pdf-big-icon"></i>
                   <div className="file-details">
-                    <span className="file-title">{selectedMemoire.fileName}</span>
-                    <span className="file-meta">{formatSize(selectedMemoire.fileSize)}</span>
+                    <span className="file-title">
+                      {selectedMemoire.fileName}
+                    </span>
+                    <span className="file-meta">
+                      {formatSize(selectedMemoire.fileSize)}
+                    </span>
                   </div>
                   <div className="file-actions">
-                    <a href={selectedMemoire.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-file open">
-                      <i className="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir
+                    <a
+                      href={selectedMemoire.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-file open"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i>{" "}
+                      Ouvrir
                     </a>
                   </div>
                 </div>
@@ -328,24 +425,70 @@ export default function MemoiresListTable({
 
       {/* MODALE DE VALIDATION DIRECTE DU QUITUS */}
       {approvingMemoire && (
-        <div className="modal-overlay" onClick={() => setApprovingMemoire(null)}>
-          <div className="modal-card" style={{ maxWidth: "450px" }} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setApprovingMemoire(null)}
+        >
+          <div
+            className="modal-card"
+            style={{ maxWidth: "450px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h2>Délivrance Quitus Provisoire</h2>
-              <button className="btn-close" onClick={() => setApprovingMemoire(null)}>
+              <button
+                className="btn-close"
+                onClick={() => setApprovingMemoire(null)}
+              >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
-            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            <div
+              className="modal-body"
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
               <p style={{ margin: 0, fontSize: "14px", color: "#475569" }}>
-                Êtes-vous sûr de vouloir valider le mémoire de <strong>{approvingMemoire.fullName}</strong> ? Le Quitus Provisoire lui sera automatiquement transmis par e-mail.
+                Êtes-vous sûr de vouloir valider le mémoire de{" "}
+                <strong>{approvingMemoire.fullName}</strong> ? Le Quitus
+                Provisoire lui sera automatiquement transmis par e-mail.
               </p>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
-                <button onClick={() => setApprovingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", cursor: "pointer" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  onClick={() => setApprovingMemoire(null)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    cursor: "pointer",
+                  }}
+                >
                   Annuler
                 </button>
-                <button onClick={handleConfirmApprove} disabled={isSubmittingApprove} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#16a34a", color: "#fff", fontWeight: "600", cursor: "pointer" }}>
-                  {isSubmittingApprove ? <i className="fa-solid fa-spinner fa-spin"></i> : "Valider & Envoyer Mail"}
+                <button
+                  onClick={handleConfirmApprove}
+                  disabled={isSubmittingApprove}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "none",
+                    backgroundColor: "#16a34a",
+                    color: "#fff",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isSubmittingApprove ? (
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                  ) : (
+                    "Valider & Envoyer Mail"
+                  )}
                 </button>
               </div>
             </div>
@@ -355,31 +498,81 @@ export default function MemoiresListTable({
 
       {/* MODALE DE REJET / DEMANDE DE CORRECTIONS */}
       {rejectingMemoire && (
-        <div className="modal-overlay" onClick={() => setRejectingMemoire(null)}>
-          <div className="modal-card" style={{ maxWidth: "450px" }} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setRejectingMemoire(null)}
+        >
+          <div
+            className="modal-card"
+            style={{ maxWidth: "450px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h2>Demande de Corrections</h2>
-              <button className="btn-close" onClick={() => setRejectingMemoire(null)}>
+              <button
+                className="btn-close"
+                onClick={() => setRejectingMemoire(null)}
+              >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
-            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            <div
+              className="modal-body"
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
               <p style={{ margin: 0, fontSize: "14px", color: "#475569" }}>
-                Précisez les éléments à corriger par <strong>{rejectingMemoire.fullName}</strong> :
+                Précisez les éléments à corriger par{" "}
+                <strong>{rejectingMemoire.fullName}</strong> :
               </p>
               <textarea
                 rows={4}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Exemple : Titre incomplet, manque la signature du président du jury, fichier illisible..."
-                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px", resize: "vertical" }}
+                style={{
+                  padding: "10px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "14px",
+                  resize: "vertical",
+                }}
               />
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                <button onClick={() => setRejectingMemoire(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", cursor: "pointer" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  onClick={() => setRejectingMemoire(null)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    cursor: "pointer",
+                  }}
+                >
                   Annuler
                 </button>
-                <button onClick={handleConfirmReject} disabled={isSubmittingReject} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", backgroundColor: "#ea580c", color: "#fff", fontWeight: "600", cursor: "pointer" }}>
-                  {isSubmittingReject ? <i className="fa-solid fa-spinner fa-spin"></i> : "Notifier l'étudiant"}
+                <button
+                  onClick={handleConfirmReject}
+                  disabled={isSubmittingReject}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "none",
+                    backgroundColor: "#ea580c",
+                    color: "#fff",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isSubmittingReject ? (
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                  ) : (
+                    "Notifier l'étudiant"
+                  )}
                 </button>
               </div>
             </div>

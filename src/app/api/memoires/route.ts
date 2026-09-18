@@ -9,7 +9,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_key_production"
+  process.env.JWT_SECRET || "fallback_secret_key_production",
 );
 
 export async function GET() {
@@ -18,7 +18,10 @@ export async function GET() {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Erreur récupération mémoires :", error);
-    return NextResponse.json({ message: "Impossible de charger les mémoires." }, { status: 500 });
+    return NextResponse.json(
+      { message: "Impossible de charger les mémoires." },
+      { status: 500 },
+    );
   }
 }
 
@@ -46,17 +49,49 @@ export async function POST(request: Request) {
     const fullName = formData.get("fullName") as string;
     const matricule = formData.get("matricule") as string;
     const filiere = formData.get("filiere") as string;
+    const cycle = formData.get("cycle") as string;
+    const noteValue = formData.get("note") as string;
+    const mention = formData.get("mention") as string;
     const academicYear = formData.get("academicYear") as string;
+    const regime = formData.get("regime") as string;
     const supervisor = formData.get("supervisor") as string;
     const internshipLocation = formData.get("internshipLocation") as string;
     const email = formData.get("email") as string;
     const phone = formData.get("phone") as string;
     const file = formData.get("file") as File | null;
 
-    if (!title || !fullName) {
+    const note = Number(noteValue);
+    const validCycles = ["I", "II"];
+    const validMentions = [
+      "Passable",
+      "Assez bien",
+      "Bien",
+      "Très bien",
+      "Excellent",
+    ];
+    const validRegimes = ["journee", "soir"];
+
+    if (!title || !fullName || !cycle || !mention || !regime || !noteValue) {
       return NextResponse.json(
-        { message: "Le titre et le nom/prénom sont obligatoires." },
-        { status: 400 }
+        {
+          message:
+            "Le titre, le nom/prénom, le cycle, la note, la mention et le régime sont obligatoires.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (
+      !validCycles.includes(cycle) ||
+      !validMentions.includes(mention) ||
+      !validRegimes.includes(regime) ||
+      !Number.isInteger(note) ||
+      note < 0 ||
+      note > 20
+    ) {
+      return NextResponse.json(
+        { message: "Les informations académiques sont invalides." },
+        { status: 400 },
       );
     }
 
@@ -69,7 +104,7 @@ export async function POST(request: Request) {
       if (file.type !== "application/pdf") {
         return NextResponse.json(
           { message: "Seuls les fichiers au format PDF sont acceptés." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -78,7 +113,9 @@ export async function POST(request: Request) {
 
       if (process.env.NODE_ENV === "production") {
         const safeFileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-        const blob = await put(`memoires/${safeFileName}`, file, { access: "public" });
+        const blob = await put(`memoires/${safeFileName}`, file, {
+          access: "public",
+        });
         fileUrl = blob.url;
       } else {
         const bytes = await file.arrayBuffer();
@@ -109,7 +146,11 @@ export async function POST(request: Request) {
             fullName,
             matricule: matricule || null,
             filiere: filiere || null,
+            cycle,
+            note,
+            mention,
             academicYear: academicYear || null,
+            regime,
             supervisor: supervisor || null,
             internshipLocation: internshipLocation || null,
             email: email ? email.toLowerCase() : null,
@@ -123,7 +164,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
           { message: "Memoire corrigé et ressoumis avec succès !" },
-          { status: 200 }
+          { status: 200 },
         );
       }
     }
@@ -132,7 +173,7 @@ export async function POST(request: Request) {
     if (!file) {
       return NextResponse.json(
         { message: "Le fichier PDF du mémoire est obligatoire." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -148,11 +189,15 @@ export async function POST(request: Request) {
       fullName,
       matricule: matricule || null,
       filiere: filiere || null,
+      cycle,
+      note,
       academicYear: academicYear || null,
+      regime,
       supervisor: supervisor || null,
       internshipLocation: internshipLocation || null,
       email: email ? email.toLowerCase() : null,
       phone: phone || null,
+      mention,
       fileUrl,
       fileName,
       fileSize,
@@ -162,13 +207,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { message: "Votre mémoire a été déposé avec succès !" },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Erreur lors du dépôt du mémoire :", error);
     return NextResponse.json(
       { message: "Une erreur interne est survenue lors de la soumission." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

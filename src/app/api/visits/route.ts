@@ -2,92 +2,23 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { visits } from "@/lib/db/schema";
-import { eq, and, isNull, lt, or } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { jwtVerify } from "jose";
+import { autoCloseExpiredVisits, getBeninDateTime } from "@/lib/visits";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_key_production"
+  process.env.JWT_SECRET || "fallback_secret_key_production",
 );
 
 // Helper pour récupérer l'heure, la date et la plage horaire au Bénin (WAT / UTC+1)
-function getBeninDateTime() {
-  const now = new Date();
-
-  // Heure locale au Bénin (HH:mm)
-  const timeString = now.toLocaleTimeString("fr-FR", {
-    timeZone: "Africa/Porto-Novo",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  // Date locale au Bénin (YYYY-MM-DD)
-  const formatter = new Intl.DateTimeFormat("fr-CA", {
-    timeZone: "Africa/Porto-Novo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const dateString = formatter.format(now);
-
-  // Conversion en minutes depuis minuit pour la restriction horaire (09h00 à 18h30)
-  const parts = timeString.split(":");
-  const currentMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-
-  const startMinutes = 9 * 60; // 09:00 -> 540 min
-  const endMinutes = 18 * 60 + 30; // 18:30 -> 1110 min
-
-  const isWithinWorkingHours =
-    currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-
-  const isPastClosingTime = currentMinutes > endMinutes;
-
-  return { timeString, dateString, isWithinWorkingHours, isPastClosingTime };
-}
-
-// Fonction de clôture automatique des visites dépassées (après 18h30 ou dates antérieures)
-async function autoCloseExpiredVisits(currentDateString: string, isPastClosingTime: boolean) {
-  try {
-    // 1. Clôture des visites restées ouvertes des jours précédents
-    await db
-      .update(visits)
-      .set({
-        departureAt: "18:30",
-        satisfactionReason: "Clôture automatique (Fin de journée)",
-      })
-      .where(
-        and(
-          isNull(visits.departureAt),
-          lt(visits.date, currentDateString)
-        )
-      );
-
-    // 2. Si l'heure actuelle dépasse 18h30, clôture de toutes les visites encore ouvertes aujourd'hui
-    if (isPastClosingTime) {
-      await db
-        .update(visits)
-        .set({
-          departureAt: "18:30",
-          satisfactionReason: "Clôture automatique (Fermeture de la bibliothèque à 18h30)",
-        })
-        .where(
-          and(
-            eq(visits.date, currentDateString),
-            isNull(visits.departureAt)
-          )
-        );
-    }
-  } catch (error) {
-    console.error("Erreur lors de la clôture automatique :", error);
-  }
-}
 
 // 0. RÉCUPÉRATION DE LA VISITE ACTIVE (GET)
 export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sda_session_token")?.value;
-    if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+    if (!token)
+      return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = (payload.id || payload.sub) as string;
@@ -105,8 +36,8 @@ export async function GET() {
         and(
           eq(visits.userId, userId),
           eq(visits.date, dateString),
-          isNull(visits.departureAt)
-        )
+          isNull(visits.departureAt),
+        ),
       )
       .get();
 
@@ -122,12 +53,14 @@ export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sda_session_token")?.value;
-    if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+    if (!token)
+      return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = (payload.id || payload.sub) as string;
 
-    const { timeString, dateString, isWithinWorkingHours, isPastClosingTime } = getBeninDateTime();
+    const { timeString, dateString, isWithinWorkingHours, isPastClosingTime } =
+      getBeninDateTime();
 
     // Auto-clôture des visites expirées au préalable
     await autoCloseExpiredVisits(dateString, isPastClosingTime);
@@ -135,13 +68,17 @@ export async function POST(request: Request) {
     // Contrôle de la plage horaire d'ouverture
     if (!isWithinWorkingHours) {
       return NextResponse.json(
-        { message: "Les enregistrements sont autorisés uniquement entre 09h00 et 18h30." },
-        { status: 403 }
+        {
+          message:
+            "Les enregistrements sont autorisés uniquement entre 09h00 et 18h30.",
+        },
+        { status: 403 },
       );
     }
 
     const { motif } = await request.json();
-    if (!motif) return NextResponse.json({ message: "Motif manquant" }, { status: 400 });
+    if (!motif)
+      return NextResponse.json({ message: "Motif manquant" }, { status: 400 });
 
     // Vérification s'il y a déjà une visite active
     const activeVisit = await db
@@ -151,15 +88,15 @@ export async function POST(request: Request) {
         and(
           eq(visits.userId, userId),
           eq(visits.date, dateString),
-          isNull(visits.departureAt)
-        )
+          isNull(visits.departureAt),
+        ),
       )
       .get();
 
     if (activeVisit) {
       return NextResponse.json(
         { message: "Vous avez déjà une visite en cours pour aujourd'hui." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -197,7 +134,8 @@ export async function PUT(request: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sda_session_token")?.value;
-    if (!token) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+    if (!token)
+      return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = (payload.id || payload.sub) as string;
@@ -217,15 +155,18 @@ export async function PUT(request: Request) {
         and(
           eq(visits.userId, userId),
           eq(visits.date, dateString),
-          isNull(visits.departureAt)
-        )
+          isNull(visits.departureAt),
+        ),
       )
       .get();
 
     if (!activeVisit) {
       return NextResponse.json(
-        { message: "Aucune visite active trouvée pour aujourd'hui (ou la visite a été automatiquement clôturée à 18h30)." },
-        { status: 404 }
+        {
+          message:
+            "Aucune visite active trouvée pour aujourd'hui (ou la visite a été automatiquement clôturée à 18h30).",
+        },
+        { status: 404 },
       );
     }
 
@@ -240,7 +181,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(
       { message: "Sortie et avis enregistrés avec succès !" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);

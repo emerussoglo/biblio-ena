@@ -6,24 +6,34 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   fullName: text("full_name").notNull(),
   sex: text("sex", { enum: ["M", "F"] }).notNull(),
-  userType: text("user_type", { 
-    enum: ["etudiant_enam", "etudiant_externe", "professionnel", "chercheur"] 
-  }).default("etudiant_enam").notNull(),
+  userType: text("user_type", {
+    enum: ["etudiant_enam", "etudiant_externe", "professionnel", "chercheur"],
+  })
+    .default("etudiant_enam")
+    .notNull(),
   phone: text("phone"),
   school: text("school"),
   filiere: text("filiere"),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role", { enum: ["admin", "student", "visitor"] }).default("student").notNull(),
+  role: text("role", { enum: ["admin", "student", "visitor"] })
+    .default("student")
+    .notNull(),
   resetCode: text("reset_code"),
   resetCodeExpiry: text("reset_code_expiry"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
 
 export const visits = sqliteTable("visits", {
   id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
   ticketNumber: text("ticket_number").notNull(),
   motif: text("motif").notNull(),
   arrivalAt: text("arrival_at").notNull(),
@@ -43,24 +53,39 @@ export const memoires = sqliteTable("memoires", {
   fullName: text("full_name").notNull(),
   matricule: text("matricule"),
   filiere: text("filiere"),
+  cycle: text("cycle", { enum: ["I", "II"] }),
+  note: integer("note"),
   academicYear: text("academic_year"),
+  regime: text("regime", { enum: ["journee", "soir"] }),
   supervisor: text("supervisor"),
   internshipLocation: text("internship_location"),
   email: text("email"),
   phone: text("phone"),
-  submissionDate: text("submission_date").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  submissionDate: text("submission_date")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
   fileUrl: text("file_url").notNull(),
-  fileName: text("file_name").notNull(), 
+  fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
   quitusNumber: text("quitus_number").unique(),
   defenseDate: text("defense_date"),
-  mention: text("mention"),
+  mention: text("mention", {
+    enum: ["Passable", "Assez bien", "Bien", "Très bien", "Excellent"],
+  }),
   approvedAt: text("approved_at"),
   rejectionReason: text("rejection_reason"),
-  physicalDepositStatus: text("physical_deposit_status", { 
-    enum: ["pending", "verified"] 
-  }).default("pending").notNull(),
-  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  physicalDepositStatus: text("physical_deposit_status", {
+    enum: ["pending", "verified"],
+  })
+    .default("pending")
+    .notNull(),
+  status: text("status", { enum: ["pending", "approved", "rejected"] })
+    .default("pending")
+    .notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
