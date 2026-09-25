@@ -130,8 +130,8 @@ export default function MemoiresListTable({
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Titre / Sujet</th>
               <th>Nom et prénom</th>
+              <th>Titre / Sujet</th>
               <th>Filière</th>
               <th>Cycle</th>
               <th>Note</th>
@@ -146,9 +146,7 @@ export default function MemoiresListTable({
           <tbody>
             {memoires.map((item) => (
               <tr key={item.id}>
-                <td className="title-cell">
-                  <span className="memoire-title">{item.title}</span>
-                </td>
+                
                 <td>
                   <div className="user-cell">
                     <span className="user-name">{item.fullName}</span>
@@ -156,6 +154,9 @@ export default function MemoiresListTable({
                       <span className="user-mat">Mat: {item.matricule}</span>
                     )}
                   </div>
+                </td>
+                <td className="title-cell">
+                  <span className="memoire-title">{item.title}</span>
                 </td>
                 <td>{item.filiere || "-"}</td>
                 <td>{item.cycle || "-"}</td>

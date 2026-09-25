@@ -19,6 +19,22 @@ interface TrackedUser {
   lastVisit: string | null;
 }
 
+interface UserVisit {
+  id: string;
+  ticketNumber: string;
+  motif: string;
+  arrivalAt: string;
+  departureAt: string | null;
+  date: string;
+  satisfactionRating: number | null;
+  satisfactionReason: string | null;
+}
+
+interface UserDetails {
+  user: TrackedUser;
+  history: UserVisit[];
+}
+
 const userTypeLabels: Record<string, string> = {
   etudiant_enam: "Étudiant ENAM",
   etudiant_externe: "Étudiant externe",
@@ -41,6 +57,9 @@ export default function SuiviPage() {
   const [sex, setSex] = useState("all");
   const [onlyFrequent, setOnlyFrequent] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TrackedUser | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -98,6 +117,47 @@ export default function SuiviPage() {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(value));
+  };
+
+  const motifLabels: Record<string, string> = {
+    consultation_ouvrages: "Consultation d'ouvrages",
+    consultation_revues: "Consultation de revues",
+    internet: "Consultation internet",
+    depot: "Dépôt de mémoires",
+    etudes: "Études",
+    lecture: "Lecture",
+    recherche: "Recherche documentaire",
+    stages: "Stages",
+    demande_renseignement: "Demande de renseignement",
+  };
+
+  const showUserDetails = async (user: TrackedUser) => {
+    setSelectedUser(user);
+    setUserDetails(null);
+    setDetailsError("");
+    setDetailsLoading(true);
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`);
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Impossible de charger le profil.");
+      setUserDetails(data);
+    } catch (loadError) {
+      setDetailsError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Erreur de chargement du profil.",
+      );
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const closeUserDetails = () => {
+    setSelectedUser(null);
+    setUserDetails(null);
+    setDetailsError("");
   };
 
   return (
@@ -266,7 +326,7 @@ export default function SuiviPage() {
                   <td style={cellStyle}>
                     <button
                       type="button"
-                      onClick={() => setSelectedUser(user)}
+                      onClick={() => showUserDetails(user)}
                       style={detailButtonStyle}
                     >
                       <i className="fa-solid fa-eye"></i> Détail
@@ -291,7 +351,7 @@ export default function SuiviPage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="user-detail-title"
-          onClick={() => setSelectedUser(null)}
+          onClick={closeUserDetails}
           style={overlayStyle}
         >
           <div onClick={(event) => event.stopPropagation()} style={modalStyle}>
@@ -314,79 +374,205 @@ export default function SuiviPage() {
               <button
                 type="button"
                 aria-label="Fermer"
-                onClick={() => setSelectedUser(null)}
+                onClick={closeUserDetails}
                 style={closeButtonStyle}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "18px",
-              }}
-            >
-              <span
+            {detailsLoading && (
+              <p style={{ color: "#64748b" }}>
+                Chargement du profil et de l&apos;historique...
+              </p>
+            )}
+            {detailsError && (
+              <p
                 style={{
-                  ...avatarStyle,
-                  width: "52px",
-                  height: "52px",
-                  fontSize: "22px",
+                  color: "#991b1b",
+                  backgroundColor: "#fef2f2",
+                  padding: "10px",
+                  borderRadius: "6px",
                 }}
               >
-                {selectedUser.fullName.trim().charAt(0).toUpperCase()}
-              </span>
-              <div>
-                <h3 style={{ margin: 0 }}>{selectedUser.fullName}</h3>
-                <span style={{ color: "#64748b" }}>
-                  {userTypeLabels[selectedUser.userType] ||
-                    selectedUser.userType}
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-                gap: "12px",
-              }}
-            >
-              {[
-                ["Email", selectedUser.email],
-                ["Téléphone", selectedUser.phone],
-                ["Sexe", selectedUser.sex === "F" ? "Féminin" : "Masculin"],
-                ["École", selectedUser.school],
-                ["Filière", selectedUser.filiere],
-                ["Date d'inscription", formatDate(selectedUser.createdAt)],
-                ["Visites sur la période", String(selectedUser.visitCount)],
-                ["Dernière visite", formatDate(selectedUser.lastVisit)],
-              ].map(([label, value]) => (
+                {detailsError}
+              </p>
+            )}
+            {!detailsLoading && !detailsError && userDetails && (
+              <>
                 <div
-                  key={label}
                   style={{
-                    padding: "10px",
-                    backgroundColor: "#f8fafc",
-                    borderRadius: "6px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginBottom: "18px",
                   }}
                 >
-                  <small
+                  <span
                     style={{
-                      display: "block",
-                      color: "#64748b",
-                      marginBottom: "3px",
+                      ...avatarStyle,
+                      width: "52px",
+                      height: "52px",
+                      fontSize: "22px",
                     }}
                   >
-                    {label}
-                  </small>
-                  <strong style={{ color: "#1e293b" }}>{value}</strong>
+                    {userDetails.user.fullName.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <div>
+                    <h3 style={{ margin: 0 }}>{userDetails.user.fullName}</h3>
+                    <span style={{ color: "#64748b" }}>
+                      {userTypeLabels[userDetails.user.userType] ||
+                        userDetails.user.userType}
+                    </span>
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                    gap: "12px",
+                  }}
+                >
+                  {[
+                    ["Email", userDetails.user.email],
+                    ["Téléphone", userDetails.user.phone],
+                    [
+                      "Sexe",
+                      userDetails.user.sex === "F" ? "Féminin" : "Masculin",
+                    ],
+                    ["École", userDetails.user.school],
+                    ["Filière", userDetails.user.filiere],
+                    [
+                      "Date d'inscription",
+                      formatDate(userDetails.user.createdAt),
+                    ],
+                    ["Visites au total", String(userDetails.history.length)],
+                    ["Dernière visite", formatDate(userDetails.user.lastVisit)],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      style={{
+                        padding: "10px",
+                        backgroundColor: "#f8fafc",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      <small
+                        style={{
+                          display: "block",
+                          color: "#64748b",
+                          marginBottom: "3px",
+                        }}
+                      >
+                        {label}
+                      </small>
+                      <strong style={{ color: "#1e293b" }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: "20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <h3 style={{ margin: 0, color: "#0f172a" }}>
+                      Historique des activités
+                    </h3>
+                    <span style={{ color: "#64748b", fontSize: "13px" }}>
+                      {userDetails.history.length} activité(s)
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      overflowX: "auto",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <table
+                      style={{
+                        width: "100%",
+                        minWidth: "560px",
+                        borderCollapse: "collapse",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <thead>
+                        <tr
+                          style={{
+                            backgroundColor: "#f8fafc",
+                            textAlign: "left",
+                          }}
+                        >
+                          <th style={cellStyle}>Ticket</th>
+                          <th style={cellStyle}>Date</th>
+                          <th style={cellStyle}>Motif</th>
+                          <th style={cellStyle}>Arrivée</th>
+                          <th style={cellStyle}>Départ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userDetails.history.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              style={{
+                                ...cellStyle,
+                                textAlign: "center",
+                                color: "#94a3b8",
+                              }}
+                            >
+                              Aucune activité enregistrée.
+                            </td>
+                          </tr>
+                        ) : (
+                          userDetails.history.map((visit) => (
+                            <tr
+                              key={visit.id}
+                              style={{ borderTop: "1px solid #f1f5f9" }}
+                            >
+                              <td
+                                style={{
+                                  ...cellStyle,
+                                  color: "#0284c7",
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {visit.ticketNumber}
+                              </td>
+                              <td style={cellStyle}>
+                                {formatDate(visit.date)}
+                              </td>
+                              <td style={cellStyle}>
+                                {motifLabels[visit.motif] || visit.motif}
+                              </td>
+                              <td
+                                style={{
+                                  ...cellStyle,
+                                  color: "#16a34a",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {visit.arrivalAt}
+                              </td>
+                              <td style={cellStyle}>
+                                {visit.departureAt || "En salle"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
             <button
               type="button"
-              onClick={() => setSelectedUser(null)}
+              onClick={closeUserDetails}
               style={{ ...detailButtonStyle, marginTop: "20px", width: "100%" }}
             >
               Fermer
