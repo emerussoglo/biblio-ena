@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface UserProfile {
@@ -33,6 +33,26 @@ const motifLabels: Record<string, string> = {
   recherche: "Recherche documentaire",
 };
 
+const motifOptions = [
+  { value: "consultation_ouvrages", label: "Consultation d'ouvrages", icon: "fa-book-open" },
+  { value: "consultation_revues", label: "Consultation de revues", icon: "fa-newspaper" },
+  { value: "internet", label: "Consultation en ligne", icon: "fa-laptop" },
+  { value: "consultation_memoire", label: "Consultation de mémoire", icon: "fa-file-lines" },
+  { value: "demande_renseignement", label: "Demande de renseignement", icon: "fa-circle-question" },
+  { value: "depot", label: "Dépôt de mémoires", icon: "fa-file-arrow-up" },
+  { value: "etudes", label: "Études", icon: "fa-graduation-cap" },
+  { value: "stage", label: "Stage", icon: "fa-briefcase" },
+  { value: "lecture", label: "Lecture", icon: "fa-book-reader" },
+  { value: "recherche", label: "Recherche documentaire", icon: "fa-magnifying-glass" },
+];
+
+const greetings = [
+  { before: 5, after: 12, text: "Bonjour", icon: "fa-sun" },
+  { before: 12, after: 18, text: "Bon après-midi", icon: "fa-cloud-sun" },
+  { before: 18, after: 24, text: "Bonsoir", icon: "fa-moon" },
+  { before: 0, after: 5, text: "Bonsoir", icon: "fa-moon" },
+];
+
 export default function DashboardHome() {
   const router = useRouter();
 
@@ -43,6 +63,10 @@ export default function DashboardHome() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
   const [isOpenHours, setIsOpenHours] = useState(true);
+  const [greeting, setGreeting] = useState(greetings[0]);
+  const [motifWheelIndex, setMotifWheelIndex] = useState<number | null>(null);
+  const [showMotifWheel, setShowMotifWheel] = useState(false);
+  const motifListRef = useRef<HTMLDivElement>(null);
 
   // État du modal de satisfaction lors de la sortie
   const [showExitModal, setShowExitModal] = useState(false);
@@ -66,6 +90,18 @@ export default function DashboardHome() {
     const initDashboard = async () => {
       try {
         setIsOpenHours(checkWorkingHours());
+        const beninHour = Number(
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: "Africa/Porto-Novo",
+            hour: "2-digit",
+            hourCycle: "h23",
+          }).format(new Date()),
+        );
+        setGreeting(
+          greetings.find(
+            (period) => beninHour >= period.before && beninHour < period.after,
+          ) || greetings[0],
+        );
 
         const resProfile = await fetch("/api/auth/me");
         if (!resProfile.ok)
@@ -143,6 +179,24 @@ export default function DashboardHome() {
     }
   };
 
+  const rotateMotif = (direction: number) => {
+    const next =
+      motifWheelIndex === null
+        ? direction > 0
+        ? 0
+        : motifOptions.length - 1
+        : (motifWheelIndex + direction + motifOptions.length) % motifOptions.length;
+    setMotifWheelIndex(next);
+    motifListRef.current
+      ?.querySelector<HTMLElement>(`[data-motif-index="${next}"]`)
+      ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+
+  const chooseMotif = (motif: string) => {
+    setShowMotifWheel(false);
+    void handleArrivalSubmit(motif);
+  };
+
   const handleDepartureSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
@@ -196,9 +250,16 @@ export default function DashboardHome() {
 
   return (
     <div className="welcome-container" style={{ position: "relative" }}>
-      <header className="welcome-header">
-        <h1>Enregistrement à l&apos;accueil de la bibliothèque.</h1>
-        <p>Votre profil est pré-rempli automatiquement.</p>
+      <header className="welcome-header welcome-hero">
+        <span className="welcome-time">
+          <i className={`fa-solid ${greeting.icon}`}></i> {greeting.text}
+        </span>
+        <h1>
+          <i className={`fa-solid ${greeting.icon}`} aria-hidden="true"></i>
+          <span>{greeting.text}, {user?.fullName || "bienvenue"}</span>
+        </h1>
+        <p style={{ textAlign: "center", }}>Enregistrement à l&apos;accueil de la bibliothèque.</p>
+        <small style={{ textAlign: "center", }}>Votre profil est pré-rempli automatiquement.</small>
       </header>
 
       {error && (
@@ -237,12 +298,10 @@ export default function DashboardHome() {
         {/* Badge utilisateur */}
         <div className="user-info-badge">
           <div className="info-grid">
+
             <div className="info-item">
-              <span>Nom :</span>{" "}
-              <strong>{user?.fullName || "Non renseigné"}</strong>
-            </div>
-            <div className="info-item">
-              <span>Sexe :</span>{" "}
+        
+              <span>Sexe</span>
               <strong>
                 {user?.sex === "M"
                   ? "Masculin"
@@ -250,9 +309,12 @@ export default function DashboardHome() {
                     ? "Féminin"
                     : "—"}
               </strong>
+
             </div>
+
             <div className="info-item">
-              <span>Statut :</span>{" "}
+             
+              <span>Statut</span>
               <strong>
                 {user?.role === "admin"
                   ? "Administrateur"
@@ -261,70 +323,146 @@ export default function DashboardHome() {
                     : "Professionnel"}
               </strong>
             </div>
+
             <div className="info-item">
-              <span>Tél :</span>{" "}
+              
+              <span>Tél</span>
               <strong>{user?.phone || "Non renseigné"}</strong>
             </div>
-            {user?.school && (
-              <div className="info-item">
-                <span>École :</span> <strong>{user.school}</strong>
-              </div>
-            )}
-            {user?.filiere && (
-              <div className="info-item-full">
-                <span>Filière :</span> <strong>{user.filiere}</strong>
-              </div>
-            )}
+
+            <div className="info-item">
+              
+              <span>École</span> <strong>{user?.school || "—"}</strong>
+            </div>
+            
+            <div className="info-item-full">
+              
+              <span>Filière</span> <strong>{user?.filiere || "—"}</strong>
+            </div>
           </div>
         </div>
 
         {/* CONDITION PRINCIPALE */}
         {!activeTicket ? (
           <div className="visit-form">
-            <div className="form-group">
-              <label htmlFor="motif">
-                Motif de visite <span className="required">*</span>{" "}
-                (sélectionnez le motif)
-              </label>
-              <select
-                id="motif"
-                required
-                defaultValue=""
+            <div className="motif-picker">
+              <button
+                type="button"
+                className="motif-picker-toggle"
+                aria-expanded={showMotifWheel}
+                aria-controls={showMotifWheel ? "motif-wheel" : undefined}
                 disabled={!isOpenHours || actionLoading}
-                onChange={(event) => {
-                  if (event.target.value)
-                    handleArrivalSubmit(event.target.value);
+                onClick={() => {
+                  setMotifWheelIndex(0);
+                  setShowMotifWheel(true);
                 }}
               >
-                <option value="" disabled>
-                  Choisissez un motif
-                </option>
-                <option value="consultation_ouvrages">
-                  Consultation d&apos;ouvrages
-                </option>
-                <option value="consultation_revues">
-                  Consultation de revues
-                </option>
-                <option value="internet">Consultation en ligne</option>
-                <option value="consultation_memoire">
-                  Consultation de mémoire
-                </option>
-                <option value="demande_renseignement">
-                  Demande de renseignement
-                </option>
-                <option value="depot">Dépôt de mémoires</option>
-                <option value="etudes">Études</option>
-                <option value="stage">Stage</option>
-                <option value="lecture">Lecture</option>
-                <option value="recherche">Recherche documentaire</option>
-              </select>
-            </div>
+                <span className="motif-current-icon">
+                  <i className="fa-solid fa-location-dot"></i>
+                </span>
+                <span>Choisir un motif de visite</span>
+                <i className="fa-solid fa-chevron-down"></i>
+              </button>
 
-            {actionLoading && (
-              <p style={{ color: "#137333", marginTop: "12px" }}>
-                Enregistrement en cours...
-              </p>
-            )}
+              {showMotifWheel && (
+                <div
+                  className="motif-picker-backdrop"
+                  onClick={() => setShowMotifWheel(false)}
+                >
+                  <section
+                    className="motif-picker-dialog"
+                    id="motif-wheel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="motif-dialog-title"
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setShowMotifWheel(false);
+                      } else if (event.key === "Enter" && motifWheelIndex !== null) {
+                        event.preventDefault();
+                        chooseMotif(motifOptions[motifWheelIndex].value);
+                      }
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="motif-dialog-header">
+                      <div>
+                        <span className="motif-step">ENREGISTREMENT</span>
+                        <h2 id="motif-dialog-title">Motif de votre visite</h2>
+                      </div>
+                      <button
+                        type="button"
+                        className="motif-dialog-close"
+                        aria-label="Fermer la liste des motifs"
+                        onClick={() => setShowMotifWheel(false)}
+                      >
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+
+                    <div className="motif-list-controls">
+                      <button
+                        type="button"
+                        className="motif-wheel-arrow"
+                        aria-label="Faire défiler vers le haut"
+                        onClick={() => rotateMotif(-1)}
+                      >
+                        <i className="fa-solid fa-chevron-up"></i>
+                      </button>
+                      <span>Faites défiler et touchez un motif</span>
+                      <button
+                        type="button"
+                        className="motif-wheel-arrow"
+                        aria-label="Faire défiler vers le bas"
+                        onClick={() => rotateMotif(1)}
+                      >
+                        <i className="fa-solid fa-chevron-down"></i>
+                      </button>
+                    </div>
+
+                    <div
+                      className="motif-options-list"
+                      ref={motifListRef}
+                      role="listbox"
+                      aria-label="Choisir un motif de visite"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === "ArrowDown") {
+                          event.preventDefault();
+                          rotateMotif(1);
+                        } else if (event.key === "ArrowUp") {
+                          event.preventDefault();
+                          rotateMotif(-1);
+                        }
+                      }}
+                    >
+                      {motifOptions.map((option, index) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          role="option"
+                          aria-selected={motifWheelIndex === index}
+                          data-motif-index={index}
+                          className={`motif-option-card${motifWheelIndex === index ? " is-highlighted" : ""}`}
+                          disabled={actionLoading}
+                          onClick={() => chooseMotif(option.value)}
+                        >
+                          <i className={`fa-solid ${option.icon}`} aria-hidden="true"></i>
+                          <span>{option.label}</span>
+                          <i className="fa-solid fa-arrow-right motif-option-arrow" aria-hidden="true"></i>
+                        </button>
+                      ))}
+                    </div>
+                    {actionLoading && (
+                      <p className="motif-saving" role="status">
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        Enregistrement de votre arrivée…
+                      </p>
+                    )}
+                  </section>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div
@@ -350,13 +488,13 @@ export default function DashboardHome() {
             >
               <i
                 className="fa-solid fa-check"
-                style={{ color: "#137333", fontSize: "24px" }}
+                style={{ color: "#0e3518", fontSize: "24px" }}
               ></i>
             </div>
 
             <h2
               style={{
-                color: "#137333",
+                color: "#0e3518",
                 fontSize: "1.6rem",
                 margin: "0 0 20px 0",
                 fontWeight: "600",
@@ -381,7 +519,7 @@ export default function DashboardHome() {
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  color: "#137333",
+                  color: "#0e3518",
                   fontWeight: "bold",
                   fontSize: "1.2rem",
                   marginBottom: "12px",

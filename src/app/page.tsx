@@ -146,7 +146,7 @@ export default function Home() {
             <path
               d="M0,100 C150,200 350,0 500,100"
               fill="none"
-              stroke="#1a5d2b"
+              stroke="#0e3518"
               strokeWidth="2"
               strokeOpacity=".8"
             />

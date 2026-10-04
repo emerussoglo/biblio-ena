@@ -71,7 +71,7 @@ export default function AdminLayout({
         <div className="sidebar-header">
           <div
             className="logo-icon-small"
-            style={{ backgroundColor: "#1a5d2b" }}
+            style={{ backgroundColor: "#0e3518" }}
           >
             <i
               className="fa-solid fa-user-shield"

@@ -323,16 +323,17 @@ export default function Register() {
 
   return (
     <main className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Créer un compte</h1>
-          <p>Rejoignez la plateforme documentaire du SDA</p>
-        </div>
+      <div className="auth-shell auth-shell-register">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Créer un compte</h1> 
+            <p>Rejoignez la plateforme documentaire du SDA.</p>
+          </div>
 
-        {error && <div className="auth-error-msg" style={{color: '#e53e3e', backgroundColor: '#fff5f5', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontWeight: '500', fontSize: '0.9rem', border: '1px solid #fed7d7'}}>{error}</div>}
-        {success && <div className="auth-success-msg" style={{color: '#38a169', backgroundColor: '#f0fff4', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontWeight: '500', fontSize: '0.9rem', border: '1px solid #c6f6d5'}}>{success}</div>}
+          {error && <div className="auth-error-msg" role="alert">{error}</div>}
+          {success && <div className="auth-success-msg" role="status">{success}</div>}
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+          <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label><i className="fa-solid fa-user"></i> Nom et prénom</label>
             <input 
@@ -462,14 +463,17 @@ export default function Register() {
             </div>
           </div>
 
-          <button type="submit" className="btn-auth" disabled={isSubmitting}>
-            <i className="fa-solid fa-user-plus"></i> {isSubmitting ? "Inscription en cours..." : "S'inscrire"}
-          </button>
-        </form>
+            <button type="submit" className="btn-auth" disabled={isSubmitting}>
+              <i className="fa-solid fa-user-plus"></i> {isSubmitting ? "Inscription en cours..." : "S'inscrire"}
+            </button>
+          </form>
 
-        <p className="auth-footer">
-          Déjà inscrit ? <Link href="/login">Connectez-vous ici</Link>
-        </p>
+          <p className="auth-footer">
+            Déjà inscrit ? <Link href="/login">Connectez-vous ici</Link>
+          </p>
+        </div>
+
+        <div className="auth-visual" role="img" aria-label="Illustration de la bibliothèque"></div>
       </div>
     </main>
   );

@@ -16,6 +16,7 @@ export default function DashboardLayout({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInitial, setUserInitial] = useState("U"); // "U" par défaut si chargement
   const [userFullName, setUserFullName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: "fa-house" },
@@ -34,8 +35,16 @@ export default function DashboardLayout({
           const data = await response.json();
           if (data.fullName) {
             setUserFullName(data.fullName);
-            setUserInitial(data.fullName.charAt(0).toUpperCase());
+            setUserInitial(
+              data.fullName
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((part: string) => part.charAt(0).toUpperCase())
+                .join(""),
+            );
           }
+          setUserEmail(data.email || "");
         }
       } catch (error) {
         console.error("Erreur lors de la récupération de l'initiale :", error);
@@ -73,7 +82,7 @@ export default function DashboardLayout({
           <div className="logo-icon-small">
             <i className="fa-solid fa-book-bookmark"></i>
           </div>
-          <span>Bibliotèque ENA</span>
+          <span>Bibliothèque ENA</span>
         </div>
         <nav className="sidebar-links">
           {menuItems.map((item) => (
@@ -105,23 +114,42 @@ export default function DashboardLayout({
               className="topbar-user-wrapper"
               style={{ position: "relative" }}
             >
-              <div
+              <button
+                type="button"
                 className="topbar-user"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                style={{ cursor: "pointer" }}
+                aria-label="Ouvrir le menu du profil"
+                aria-expanded={dropdownOpen}
+                aria-haspopup="true"
               >
                 <span className="user-initials">{userInitial}</span>
-              </div>
+              </button>
 
               {/* Menu Déroulant (Dropdown) */}
               {dropdownOpen && (
                 <div className="user-dropdown-menu">
                   <div className="dropdown-user-info">
-                    <p className="dropdown-name">
-                      {userFullName || "Utilisateur"}
-                    </p>
+                    <span className="dropdown-avatar">{userInitial}</span>
+                    <div className="dropdown-user-copy">
+                      <p className="dropdown-name">{userFullName || "Utilisateur"}</p>
+                      <p className="dropdown-email">{userEmail || "Espace personnel"}</p>
+                    </div>
                   </div>
                   <hr className="dropdown-divider" />
+                  <Link
+                    href="/dashboard"
+                    className="dropdown-item"
+                    onClick={closeDropdown}
+                  >
+                    <i className="fa-solid fa-house"></i> Tableau de bord
+                  </Link>
+                  <Link
+                    href="/catalogue"
+                    className="dropdown-item"
+                    onClick={closeDropdown}
+                  >
+                    <i className="fa-solid fa-book-open"></i> Catalogue
+                  </Link>
                   <Link
                     href="/"
                     className="dropdown-item"
@@ -137,6 +165,7 @@ export default function DashboardLayout({
                     <i className="fa-solid fa-user"></i> Mon Profil
                   </Link>
                   <button
+                    type="button"
                     onClick={handleLogout}
                     className="dropdown-item logout-btn"
                   >

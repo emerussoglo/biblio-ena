@@ -49,11 +49,11 @@ export async function POST(request: Request) {
       subject: "Code de réinitialisation de votre mot de passe",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #1a5d2b; text-align: center;">Réinitialisation de mot de passe</h2>
+          <h2 style="color: #0e3518; text-align: center;">Réinitialisation de mot de passe</h2>
           <p>Bonjour,</p>
           <p>Vous avez demandé la réinitialisation de votre mot de passe. Voici votre code de vérification à 6 chiffres :</p>
           <div style="text-align: center; margin: 25px 0;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1a5d2b; background: #f0f9ff; padding: 10px 20px; border-radius: 6px; border: 1px dashed #1a5d2b;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #0e3518; background: #f0f9ff; padding: 10px 20px; border-radius: 6px; border: 1px dashed #0e3518;">
               ${resetCode}
             </span>
           </div>

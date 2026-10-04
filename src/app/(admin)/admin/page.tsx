@@ -256,7 +256,7 @@ export default function AdminVisitsPage() {
         return `
           <!-- En-tête École -->
           <tr style="background-color: #f1f5f9; font-weight: bold;">
-            <td style="border: 1px solid #cbd5e1; padding: 6px; color: #1a5d2b; font-size: 11px;">
+            <td style="border: 1px solid #cbd5e1; padding: 6px; color: #0e3518; font-size: 11px;">
               🏢 ${school}
             </td>
             <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${schData.M}</td>
@@ -269,11 +269,11 @@ export default function AdminVisitsPage() {
       .join("");
 
     reportContainer.innerHTML = `
-      <div style="text-align: center; border-bottom: 2px solid #1a5d2b; padding-bottom: 10px; margin-bottom: 15px;">
+      <div style="text-align: center; border-bottom: 2px solid #0e3518; padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="margin: 0; font-size: 18px; color: #0f172a; text-transform: uppercase;">
           Rapport Statistique de Fréquentation & Satisfaction
         </h2>
-        <p style="margin: 4px 0 0 0; color: #1a5d2b; font-size: 13px; font-weight: bold;">
+        <p style="margin: 4px 0 0 0; color: #0e3518; font-size: 13px; font-weight: bold;">
           Journée du ${formatDate(date)}
         </p>
       </div>
@@ -286,16 +286,16 @@ export default function AdminVisitsPage() {
       </div>
 
       <!-- SECTION 1 : STATISTIQUES PAR ÉCOLE & SEXE & FILIÈRE -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #0e3518; text-transform: uppercase;">
         1. Répartition par École / Établissement, Sexe et Filière
       </h4>
       <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
         <thead>
-          <tr style="background-color: #1a5d2b; color: #ffffff;">
-            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: left;">École / Filière</th>
-            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 65px;">Hommes (M)</th>
-            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 65px;">Femmes (F)</th>
-            <th style="border: 1px solid #1a5d2b; padding: 6px; text-align: center; width: 75px;">Total</th>
+          <tr style="background-color: #0e3518; color: #ffffff;">
+            <th style="border: 1px solid #0e3518; padding: 6px; text-align: left;">École / Filière</th>
+            <th style="border: 1px solid #0e3518; padding: 6px; text-align: center; width: 65px;">Hommes (M)</th>
+            <th style="border: 1px solid #0e3518; padding: 6px; text-align: center; width: 65px;">Femmes (F)</th>
+            <th style="border: 1px solid #0e3518; padding: 6px; text-align: center; width: 75px;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -310,7 +310,7 @@ export default function AdminVisitsPage() {
       </table>
 
       <!-- SECTION 2 : PAR CATÉGORIE D'USAGER -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #0e3518; text-transform: uppercase;">
         2. Répartition par Statut / Catégorie d'Usager
       </h4>
       <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
@@ -339,7 +339,7 @@ export default function AdminVisitsPage() {
       </table>
 
       <!-- SECTION 3 : PAR MOTIF DE VISITE -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #0e3518; text-transform: uppercase;">
         3. Répartition par Motif de Visite
       </h4>
       <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 14px;">
@@ -363,7 +363,7 @@ export default function AdminVisitsPage() {
       </table>
 
       <!-- SECTION 4 : REMARQUES ET INSATISFACTIONS -->
-      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #1a5d2b; text-transform: uppercase;">
+      <h4 style="margin: 12px 0 6px 0; font-size: 12px; color: #0e3518; text-transform: uppercase;">
         4. Remarques et Insatisfactions (Notes ≤ 2/5)
       </h4>
       ${
