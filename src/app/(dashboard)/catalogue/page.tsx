@@ -118,13 +118,13 @@ export default function CataloguePage() {
         </section>
       ) : activeTab === "en-ligne" ? (
         <section className="resources-container">
-          <div className="resources-header">
+          {/* <div className="resources-header">
             <p>
               Accédez directement aux principales plateformes de recherche
               académique, scientifique et juridique pour enrichir vos travaux et
               mémoires.
             </p>
-          </div>
+          </div> */}
 
           <div className="resources-grid">
             {onlineResources.map(renderResource)}

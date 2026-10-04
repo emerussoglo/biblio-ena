@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export default function Login() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: identifier, password }),
       });
 
       const data = await response.json();
@@ -67,13 +67,14 @@ export default function Login() {
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label><i className="fa-solid fa-envelope"></i> Email</label>
+              <label><i className="fa-solid fa-user"></i> Identifiant ou adresse e-mail</label>
               <input
-                type="email"
-                placeholder="example@gmail.com"
+                type="text"
+                autoComplete="username"
+                placeholder="Votre identifiant ou adresse e-mail"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 disabled={loading}
               />
             </div>

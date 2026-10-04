@@ -964,10 +964,12 @@ body {
 .auth-header h1 {
   font-size: 1.6rem;
   color: var(--enam-green);
+  text-align: center;
 }
 .auth-header p {
   font-size: 0.9rem;
   color: var(--text-muted);
+  text-align: center;
 }
 
 /* Formulaire */
@@ -1367,20 +1369,24 @@ body {
   .public-tabbar {
     position: fixed;
     z-index: 2100;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
-    min-height: 66px;
+    width: 100%;
+    min-height: calc(70px + env(safe-area-inset-bottom));
     align-items: center;
     justify-content: space-around;
-    padding: 7px 5px;
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 12px 35px rgba(14, 53, 24, 0.18);
+    gap: 1px;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 22px 22px 0 0;
+    background: #0e3518;
+    box-shadow: 0 -8px 28px rgba(14, 53, 24, 0.2);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    transition: opacity 180ms ease;
   }
 
   .public-tabbar a {
@@ -1390,10 +1396,10 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     padding: 5px 2px;
-    border-radius: 16px;
-    color: #69766c;
+    border-radius: 13px;
+    color: rgba(255, 255, 255, 0.72);
     font-size: clamp(0.54rem, 2.2vw, 0.66rem);
     font-weight: 700;
     line-height: 1.1;
@@ -1405,23 +1411,31 @@ body {
   .public-tabbar a i {
     display: grid;
     width: 30px;
-    height: 27px;
+    height: 26px;
     place-items: center;
-    border-radius: 12px;
+    border-radius: 11px;
     font-size: 1rem;
   }
 
   .public-tabbar a.active {
-    color: #0e3518;
+    background: rgba(255, 255, 255, 0.13);
+    color: #ffffff;
+  }
+
+  .public-tabbar a:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
   }
 
   .public-tabbar a.active i {
-    background: #e6eee7;
+    background: transparent;
+    color: #f5dc82;
   }
 
   .main-layout .page-content {
-    padding-bottom: 90px;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
   }
+
 }
 
 @media (max-width: 480px) {
@@ -1522,22 +1536,6 @@ body {
     padding-top: 20px;
   }
 
-  .public-tabbar {
-    right: 0;
-    bottom: 0;
-    left: 0;
-    min-height: calc(70px + env(safe-area-inset-bottom));
-    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
-    border: 0;
-    border-top: 1px solid rgba(14, 53, 24, 0.08);
-    border-radius: 22px 22px 0 0;
-    background: rgba(255, 255, 255, 0.97);
-    box-shadow: 0 -8px 28px rgba(14, 53, 24, 0.13);
-  }
-
-  .main-layout .page-content {
-    padding-bottom: calc(82px + env(safe-area-inset-bottom));
-  }
 }
 
 .interactive-feature-wrapper {

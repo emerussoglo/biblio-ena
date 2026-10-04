@@ -13,8 +13,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
+    const identifier = typeof email === "string" ? email.trim() : "";
 
-    if (!email || !password) {
+    if (!identifier || typeof password !== "string" || !password) {
       return NextResponse.json(
         { message: "Veuillez remplir tous les champs." },
         { status: 400 }
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // --- INTERCEPTION DE LA CONNEXION ADMIN FIXE ---
-    if (email.trim() === process.env.ADMIN_USERNAME) {
+    if (identifier === process.env.ADMIN_USERNAME) {
       if (password === process.env.ADMIN_PASSWORD) {
         // Génération du JWT pour l'admin
         const token = await new SignJWT({ 
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.email, email.toLowerCase()))
+      .where(eq(users.email, identifier.toLowerCase()))
       .get();
 
     if (!user) {

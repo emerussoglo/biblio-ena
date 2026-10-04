@@ -251,9 +251,9 @@ export default function DashboardHome() {
   return (
     <div className="welcome-container" style={{ position: "relative" }}>
       <header className="welcome-header welcome-hero">
-        <span className="welcome-time">
+        {/* <span className="welcome-time">
           <i className={`fa-solid ${greeting.icon}`}></i> {greeting.text}
-        </span>
+        </span> */}
         <h1>
           <i className={`fa-solid ${greeting.icon}`} aria-hidden="true"></i>
           <span>{greeting.text}, {user?.fullName || "bienvenue"}</span>
@@ -387,8 +387,8 @@ export default function DashboardHome() {
                   >
                     <div className="motif-dialog-header">
                       <div>
-                        <span className="motif-step">ENREGISTREMENT</span>
-                        <h2 id="motif-dialog-title">Motif de votre visite</h2>
+                        {/* <span className="motif-step">ENREGISTREMENT</span> */}
+                        {/* <h2 id="motif-dialog-title">Motif de votre visite</h2> */}
                       </div>
                       <button
                         type="button"

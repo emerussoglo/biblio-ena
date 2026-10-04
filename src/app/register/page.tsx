@@ -424,7 +424,7 @@ export default function Register() {
             <label><i className="fa-solid fa-envelope"></i> Email</label>
             <input 
               type="email" 
-              placeholder="example@gmail.com" 
+              placeholder="emerussoglo@gmail.com" 
               required 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
